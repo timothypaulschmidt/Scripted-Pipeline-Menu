@@ -27,7 +27,8 @@ vm_menu() {
   vm_env "$e"
   while true; do
     clear 2>/dev/null || true
-    printf '\033[1;36m=== Scripted Pipeline Menu: %s (%s) ===\033[0m\n' "$(upper "$e")" "$(env_val "$e" HOST)"
+    printf '\033[1;36m=== Scripted Pipeline Menu v%s: %s (%s) ===\033[0m\n' "$LAB_VERSION" "$(upper "$e")" "$(env_val "$e" HOST)"
+    if verbose; then printf '  Explanations: ON (press v to turn off)\n'; else printf '  Explanations: OFF (press v to turn on)\n'; fi
     [ "$e" = "prod" ] && printf '\033[1;31m  PRODUCTION: changes ask you to type "prod".\033[0m\n'
     cat <<EOF2
    1  Get the code               ($e-01)  clone / pull
@@ -38,6 +39,7 @@ vm_menu() {
    6  Secrets / Gemini key       ($e-06)
    7  Addresses                  ($e-09)
    0  First-time setup           ($e-00)  once per VM
+   v  Turn explanations on/off
    q  Quit
 EOF2
     read -r -p "Choose: " c
@@ -52,6 +54,7 @@ EOF2
       6) menu_run "$e-06-secrets.sh" ;;
       7) menu_run "$e-09-urls.sh" ;;
       0) menu_run "$e-00-first-time-setup.sh" ;;
+      v|V) if verbose; then export LAB_VERBOSE=0; else export LAB_VERBOSE=1; fi ;;
       q|Q) return 0 ;;
       *) warn "Not a choice."; sleep 1 ;;
     esac

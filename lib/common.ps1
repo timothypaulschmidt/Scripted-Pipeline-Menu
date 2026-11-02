@@ -25,6 +25,38 @@ function Read-LabEnv {
 }
 $global:Lab = Read-LabEnv
 
+$global:LabVersion = "?"
+$vf = Join-Path $global:LabDir "VERSION"
+if (Test-Path $vf) { $global:LabVersion = (Get-Content $vf -TotalCount 1).Trim() }
+
+# ---- verbose mode (on by default; $env:LAB_VERBOSE = "0" turns it off) -----------------
+# Why "text"   : a plain-English note about what the next step is for
+# Intro "text" : a short paragraph at the top of a script: what it does and why
+# Explain cmd  : prints what a command and its options mean, from lib\explain.txt
+function Test-Verbose { return ($env:LAB_VERBOSE -ne "0") }
+function Why   { param([string]$m) if (Test-Verbose) { Write-Host ("  # " + $m) -ForegroundColor Green } }
+function Intro { param([string]$m) if (Test-Verbose) { Write-Host ("  # " + $m) -ForegroundColor Green; Write-Host "" } }
+
+$global:ExplainRules = @()
+foreach ($l in (Get-Content (Join-Path $global:LabDir "lib\explain.txt"))) {
+    if ($l -eq "" -or $l.StartsWith("#")) { continue }
+    $i = $l.IndexOf("`t")
+    if ($i -lt 1) { continue }
+    $global:ExplainRules += ,@($l.Substring(0, $i), $l.Substring($i + 1))
+}
+
+function Explain {
+    param([string]$Cmd)
+    if (-not (Test-Verbose)) { return }
+    $first = $true
+    foreach ($r in $global:ExplainRules) {
+        if ($Cmd -match $r[0]) {
+            if ($first) { Write-Host ("  # " + $r[1]) -ForegroundColor Green; $first = $false }
+            else        { Write-Host ("  # " + $r[1]) -ForegroundColor DarkGreen }
+        }
+    }
+}
+
 # ---- talking to you ----------------------------------------------------------------
 function Say  { param([string]$m) Write-Host "==> $m" -ForegroundColor Cyan }
 function Ok   { param([string]$m) Write-Host " OK $m" -ForegroundColor Green }
@@ -50,7 +82,9 @@ function Run {
     $exe = [string]$args[0]
     $rest = @()
     if ($args.Count -gt 1) { $rest = @($args[1..($args.Count - 1)] | ForEach-Object { [string]$_ }) }
-    Write-Host ("  $ " + $exe + " " + (($rest | ForEach-Object { Format-Arg $_ }) -join " ")) -ForegroundColor DarkYellow
+    $line = $exe + " " + (($rest | ForEach-Object { Format-Arg $_ }) -join " ")
+    Explain $line
+    Write-Host ("  $ " + $line) -ForegroundColor DarkYellow
     if ($global:Dry) { return }
     & $exe @rest
     if ($LASTEXITCODE -ne 0) { Die "'$exe' failed with exit code $LASTEXITCODE" }
@@ -61,7 +95,9 @@ function TryRun {
     $exe = [string]$args[0]
     $rest = @()
     if ($args.Count -gt 1) { $rest = @($args[1..($args.Count - 1)] | ForEach-Object { [string]$_ }) }
-    Write-Host ("  $ " + $exe + " " + (($rest | ForEach-Object { Format-Arg $_ }) -join " ")) -ForegroundColor DarkYellow
+    $line = $exe + " " + (($rest | ForEach-Object { Format-Arg $_ }) -join " ")
+    Explain $line
+    Write-Host ("  $ " + $line) -ForegroundColor DarkYellow
     if ($global:Dry) { return $true }
     & $exe @rest
     return ($LASTEXITCODE -eq 0)
@@ -72,6 +108,11 @@ function Test-Quiet {
     $exe = [string]$args[0]
     $rest = @()
     if ($args.Count -gt 1) { $rest = @($args[1..($args.Count - 1)] | ForEach-Object { [string]$_ }) }
+    $line = $exe + " " + (($rest | ForEach-Object { Format-Arg $_ }) -join " ")
+    if (Test-Verbose) {
+        Explain $line
+        Write-Host ("  ? " + $line + "   (a quick check; its output is hidden)") -ForegroundColor DarkYellow
+    }
     $null = & $exe @rest 2>&1
     return ($LASTEXITCODE -eq 0)
 }
@@ -129,6 +170,7 @@ function Set-ManifestTag {
     param([string]$App, [string]$NewTag)
     $file = Join-Path (Get-RepoPath $App) (Get-AppValue $App "TAG_FILE")
     $image = Get-Image $App
+    Why "Editing ${file}: the image version lives on the 'newTag:' line under this image's name. Changing it is what tells Kubernetes (and the VM) which version to run."
     $text = [IO.File]::ReadAllText($file)
     $eol = "`n"; if ($text.Contains("`r`n")) { $eol = "`r`n" }
     $lines = $text -split "`r?`n"
@@ -175,6 +217,7 @@ function ConvertTo-PlainText {
 # Saved with Windows DPAPI: only your Windows login on this computer can read it back.
 function Save-GeminiKey {
     param([System.Security.SecureString]$Secure)
+    Why "Saving the key: ConvertFrom-SecureString encrypts it with Windows DPAPI (tied to your Windows login), then it is written to $(Get-KeyFile). The text in that file is useless on any other computer or account."
     ($Secure | ConvertFrom-SecureString) | Set-Content -Path (Get-KeyFile) -Encoding ASCII
 }
 

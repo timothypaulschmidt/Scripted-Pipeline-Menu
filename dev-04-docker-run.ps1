@@ -8,6 +8,7 @@ $ErrorActionPreference = "Continue"
 . (Join-Path $PSScriptRoot "lib\common.ps1")
 Require-Command docker "Install Docker Desktop and start it"
 if (-not (Test-Quiet docker info)) { Die "Docker is not running. Start Docker Desktop first." }
+Intro "RUN DOCKER CONTAINERS: a container is a running copy of an image. They join one private network so the Assistant and Agents can reach the MCP server by name. Ports are opened to this computer so your browser can reach each app. The Gemini key is passed in from this window without being printed."
 $L = $Lab
 Initialize-GeminiKey
 

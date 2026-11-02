@@ -5,6 +5,7 @@
 secret_exists() { kubectl -n "$NAMESPACE" get secret "$1" >/dev/null 2>&1; }
 
 ensure_namespace() {
+  why "Checking that the namespace exists first, because every app and secret lives inside it."
   if ! kubectl get namespace "$NAMESPACE" >/dev/null 2>&1; then
     say "Creating namespace $NAMESPACE (first deploy on this cluster)"
     run kubectl create namespace "$NAMESPACE"
@@ -17,6 +18,7 @@ vm_pull() {
   local target="${1:-}" list="" t name path
   [ -n "$target" ] || die "Usage: ${LAB_ENV}-01-git-pull.sh <all|assistant|mcp|agents|menu>"
   require git "Install it with: sudo apt install git"
+  intro "GETTING THE CODE: this VM keeps its own clone of each repo (under $ROOT). The first time we clone from GitHub; after that we pull the newest main. Deploys then read the manifests from these clones, so nothing is copied by hand with scp."
   if [ "$target" = "menu" ]; then
     list="menu"
   elif [ "$target" = "all" ]; then
@@ -65,6 +67,7 @@ vm_deploy() {
   local apps a dir tagfile image tag dep envup
   apps="$(resolve_apps "${1:-}")"
   envup="$(upper "$LAB_ENV")"
+  intro "DEPLOYING to $LAB_ENV: for each app we read the image version from its manifest (deploy/.../kustomization.yaml, the newTag line), make sure the secrets it needs exist, tell Kubernetes to match the manifest, then wait until the new pod is healthy. A new version rolls out simply because the newTag changed."
   guard_prod
   for a in $apps; do
     dir="$(repo_dir "$a")/$(app_val "$a" "${envup}_DEPLOY")"
@@ -147,6 +150,7 @@ vm_reset_mcp() {
   vm_env "$1"
   require kubectl "k3s should have installed it."
   guard_prod
+  intro "RESETTING DATA: the MCP server builds its fake company data when it starts. Restarting its pod throws away every change (deleted rows, inserted tickets) and rebuilds the seed data."
   say "Restarting the MCP server: every table goes back to the seed data"
   run kubectl -n "$NAMESPACE" rollout restart deployment/mcp-server
   run kubectl -n "$NAMESPACE" rollout status deployment/mcp-server --timeout=180s
@@ -162,6 +166,9 @@ apply_secret() {
     printf '  $ (dry run) would create or replace secret %s (key %s, value hidden)\n' "$name" "$key"
     return 0
   fi
+  why "Writing the secret: the value goes into a temp file only you can read (chmod 600), is handed to kubectl, then the file is deleted. It never appears on the command line, in this window, or in git."
+  printf '\033[0;33m  $ kubectl -n %s create secret generic %s --from-file=%s=<temp file> --dry-run=client -o yaml | kubectl apply -f -\033[0m\n' "$NAMESPACE" "$name" "$key"
+  why "create secret ... --dry-run=client -o yaml: builds the Secret definition on this machine without sending it. apply -f - : sends it to the cluster, creating the secret or replacing the old one."
   tmp="$(mktemp)"
   chmod 600 "$tmp"
   printf '%s' "$value" > "$tmp"
@@ -197,6 +204,7 @@ vm_secrets() {
   vm_env "$1"; shift
   require kubectl "k3s should have installed it."
   local choice="${1:-}" v name key list
+  intro "SECRETS: passwords and API keys live in Kubernetes Secret objects inside the cluster, never in git or in these scripts. Pods read them as environment variables when they start, which is why changing one restarts the pods that use it."
   if [ -z "$choice" ]; then
     cat <<EOF
 Secrets on $LAB_ENV (values are never shown):

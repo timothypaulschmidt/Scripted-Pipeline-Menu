@@ -7,6 +7,7 @@ param([Parameter(Mandatory = $true)][ValidateSet("qa", "prod")][string]$EnvName)
 $ErrorActionPreference = "Continue"
 . (Join-Path $PSScriptRoot "lib\common.ps1")
 Require-Command ssh "Turn on 'OpenSSH Client' in Windows Optional Features."
+Intro "PREPARING A VM: (1) an ssh key lets you log in without a password, (2) the VM gets its own clone of this scripts repo, (3) its first-time setup script clones the app repos and creates the MCP admin token. After this, the ship scripts can do everything over ssh."
 $vm = Get-VmInfo $EnvName
 $target = $vm.User + "@" + $vm.Host
 

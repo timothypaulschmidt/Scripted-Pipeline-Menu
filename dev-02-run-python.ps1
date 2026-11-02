@@ -7,6 +7,7 @@ $ErrorActionPreference = "Continue"
 . (Join-Path $PSScriptRoot "lib\common.ps1")
 Require-Command python "Install Python 3.11 or newer from python.org"
 
+Intro "RUN WITH PYTHON: this runs the app straight from the source code on this computer, with auto-reload when you edit a file. We install the packages, set the settings the app reads (where Ollama, the MCP server and the admin token are), then start the web server. The MCP server must be up before the apps that call it."
 $apps = Resolve-Apps $App
 Initialize-GeminiKey      # puts the key in THIS window's environment; child windows inherit it
 

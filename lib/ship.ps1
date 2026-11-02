@@ -16,6 +16,7 @@ function Invoke-Ship {
     $vm = Get-VmInfo $EnvName
     $p = $EnvName + "-"
 
+    Intro "SHIPPING to ${EnvName}: first we check, from your computer, that GitHub main wants a version that really exists on Docker Hub. Then ONE ssh session on the VM updates its copy of these scripts, pulls the app code, and deploys. Nothing is copied by hand."
     Say "Checking that each app's new version is ready to ship"
     foreach ($a in $apps) {
         $null = Assert-RepoExists $a

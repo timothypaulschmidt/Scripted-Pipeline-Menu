@@ -4,6 +4,7 @@
 $ErrorActionPreference = "Continue"
 . (Join-Path $PSScriptRoot "lib\common.ps1")
 
+Intro "FIRST-TIME SETUP: a new computer needs four tools (git, python, docker, ssh) and the shared Docker network. Then we clone the app repos so every other script finds them in the same place. It is safe to run again; it only fills in what is missing."
 Say "Checking the tools this lab needs"
 $missing = 0
 foreach ($t in @(
