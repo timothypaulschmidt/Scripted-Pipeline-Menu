@@ -5,6 +5,8 @@
 $ErrorActionPreference = "Continue"
 . (Join-Path $PSScriptRoot "lib\common.ps1")
 
+$menuTitle = "Scripted Pipeline Menu v" + $global:LabVersion + ": Windows"
+Set-Title $menuTitle
 $ps = (Get-Process -Id $PID).Path     # the same PowerShell that is running this menu
 
 function Ask-Choice {
@@ -25,6 +27,7 @@ function Invoke-MenuScript {
     if ($LASTEXITCODE -ne 0) { Warn "That script stopped with an error (shown above)." }
     Write-Host ""
     [void](Read-Host "Press Enter to return to the menu")
+    Set-Title $menuTitle
 }
 
 $one = @("assistant", "mcp", "agents")

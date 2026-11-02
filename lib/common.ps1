@@ -295,3 +295,14 @@ function Confirm-Prod {
 }
 
 function Get-VmScriptPrefix { param([string]$EnvName) return ($EnvName + "-") }
+
+# ---- window title: the text at the top of the PowerShell window ------------------------------
+function Set-Title {
+    param([string]$Text)
+    try { $Host.UI.RawUI.WindowTitle = $Text } catch { }
+}
+# Every script gets a title from its own file name; a script or the menu can set a nicer one after.
+$caller = (Get-PSCallStack)[1]
+if ($caller -and $caller.ScriptName) {
+    Set-Title ("Scripted Pipeline Menu: " + [IO.Path]::GetFileNameWithoutExtension($caller.ScriptName))
+}

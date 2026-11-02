@@ -23,9 +23,11 @@ menu_run() { # script args... : run in a subshell so a failure cannot close the 
 }
 
 vm_menu() {
-  local e="$1" c a f
+  local e="$1" c a f title
   vm_env "$e"
+  title="Scripted Pipeline Menu v$LAB_VERSION: $(upper "$e")"
   while true; do
+    set_title "$title"
     clear 2>/dev/null || true
     printf '\033[1;36m=== Scripted Pipeline Menu v%s: %s (%s) ===\033[0m\n' "$LAB_VERSION" "$(upper "$e")" "$(env_val "$e" HOST)"
     if verbose; then printf '  Explanations: ON (press v to turn off)\n'; else printf '  Explanations: OFF (press v to turn on)\n'; fi

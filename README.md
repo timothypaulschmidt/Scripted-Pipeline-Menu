@@ -133,5 +133,5 @@ Edit `lab.env`, merge, pull on each machine. No script contains these values.
 
 ## Changes
 
-- **2.0.0** Verbose mode: an explanation before every command and an introduction at the start of the main scripts; `v` toggle in the menus; `lib/explain.txt`.
+- **2.0.0** Verbose mode: an explanation before every command and an introduction at the start of the main scripts; `v` toggle in the menus; `lib/explain.txt`. Window titles: each window shows the script, the menu, or the app (for example "Python: AI-Assistant") instead of "Windows PowerShell".
 - **1.0.0** First release: dev, qa and prod scripts and the text menus.
