@@ -8,6 +8,7 @@ $ErrorActionPreference = "Continue"
 Require-Command docker "Install Docker Desktop and start it"
 if (-not (Test-Quiet docker info)) { Die "Docker is not running. Start Docker Desktop first." }
 
+Intro "DOWNLOAD DOCKER IMAGES: each repo records which image version it wants in its deploy manifest (the newTag line). We read that, then pull exactly that version from Docker Hub, so what you test here is what QA runs."
 foreach ($a in (Resolve-Apps $App)) {
     $image = Get-Image $a
     $tag = Get-ManifestTag $a

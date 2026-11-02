@@ -32,7 +32,8 @@ $all = @("all") + $one
 
 while ($true) {
     Clear-Host
-    Write-Host "=== Scripted Pipeline Menu: Windows ===" -ForegroundColor Cyan
+    Write-Host ("=== Scripted Pipeline Menu v" + $global:LabVersion + ": Windows ===") -ForegroundColor Cyan
+    if (Test-Verbose) { Write-Host "  Explanations: ON  (press v to turn off)" -ForegroundColor Green } else { Write-Host "  Explanations: OFF (press v to turn on)" -ForegroundColor DarkGray }
     Write-Host "  THIS COMPUTER"
     Write-Host "   1  Get the code (clone / pull)      dev-01"
     Write-Host "   2  Run with Python                  dev-02"
@@ -57,6 +58,7 @@ while ($true) {
     Write-Host "  30  First-time setup of this computer   dev-00"
     Write-Host "  31  First-time setup of a VM (ssh key, clone, setup)   dev-08"
     Write-Host "  32  Show every address               dev-09"
+    Write-Host "   v  Turn explanations on/off"
     Write-Host "   q  Quit"
     $c = Read-Host "Choose"
     switch ($c) {
@@ -84,6 +86,7 @@ while ($true) {
         "30" { Invoke-MenuScript "dev-00-first-time-setup.ps1" }
         "31" { $e = Ask-Choice "Which VM" "qa" @("qa", "prod"); Invoke-MenuScript "dev-08-vm-bootstrap.ps1" @($e) }
         "32" { Invoke-MenuScript "dev-09-urls.ps1" }
+        { $_ -in "v", "V" } { if (Test-Verbose) { $env:LAB_VERBOSE = "0" } else { $env:LAB_VERBOSE = "1" } }
         { $_ -in "q", "Q" } { return }
         default { Warn "Not a choice."; Start-Sleep -Seconds 1 }
     }

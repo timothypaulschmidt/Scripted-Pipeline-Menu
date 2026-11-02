@@ -1,0 +1,69 @@
+# lib/explain.txt - what each command means, shown in verbose mode (the default).
+# One line per rule: <regex><TAB><text>. Every rule that matches a command is printed, in file order:
+# the command rule first, then one line per option. Read by both bash and PowerShell.
+# Turn it off with LAB_VERBOSE=0 (bash) or $env:LAB_VERBOSE = "0" (PowerShell), or the v key in a menu.
+^git( -C [^ ]+)? clone	GIT CLONE: makes a full local copy of a GitHub repository (the code plus its whole history). You do this once per computer.
+^git( -C [^ ]+)? fetch	GIT FETCH: downloads the newest changes from GitHub but does NOT touch your files yet. It is the safe "look first" step.
+^git( -C [^ ]+)? checkout	GIT CHECKOUT: switches your working folder to a branch. "main" is the official, merged version of the code.
+^git( -C [^ ]+)? pull	GIT PULL: downloads the newest change from GitHub and merges it into your files. This is how a change merged on GitHub reaches this machine.
+^git( -C [^ ]+)? log	GIT LOG: shows the most recent commits (saved changes), so you can see exactly which version of the code you have now.
+^git( -C [^ ]+)? status	GIT STATUS: lists files you changed but have not committed yet. The scripts use it to avoid overwriting your work.
+^git( -C [^ ]+)? add	GIT ADD: marks this changed file to be included in the next commit.
+^git( -C [^ ]+)? commit	GIT COMMIT: saves the marked changes as one named snapshot in your local history.
+^git( -C [^ ]+)? push	GIT PUSH: uploads your local commits to GitHub, so other computers and the VMs can pull them.
+^git -C 	  -C <folder>: run git as if you were standing in that folder, so the script never has to change directory.
+ --ff-only	  --ff-only: only fast-forward. If your copy has drifted from GitHub, stop with an error instead of making a surprise merge.
+^git.* origin( |$)	  origin: the nickname git gives the GitHub copy of this repository.
+ --oneline	  --oneline -3: one line per commit, newest first; the number is how many to show.
+^git.* -m 	  -m "text": the commit message, a short note saying what changed and why.
+^docker info	DOCKER INFO: asks the Docker engine to report its status. If this fails, Docker Desktop is not running.
+^docker network create	DOCKER NETWORK CREATE: makes a private virtual network. Containers on it can find each other by name (for example http://mcp-server:8000).
+^docker network inspect	DOCKER NETWORK INSPECT: checks whether that network already exists, so we only create it once.
+^docker build	DOCKER BUILD: reads the Dockerfile and bakes your code into an image, a frozen runnable package of the app.
+^docker build.* -t 	  -t name:tag: names the image. The part after the colon is the tag; we use it as the version, like v0.2.1.
+^docker build.* \.$	  the final "." means: use the files in the current folder as the build input.
+^docker push	DOCKER PUSH: uploads the image to Docker Hub, so QA and prod can download exactly this version.
+^docker pull	DOCKER PULL: downloads an image from Docker Hub to this computer. Public images need no login.
+^docker run	DOCKER RUN: starts a container, which is a running copy of an image.
+^docker run.* -d 	  -d (detached): run in the background so this window stays free.
+^docker run.* --rm 	  --rm: delete the container automatically when it stops, so nothing piles up.
+^docker run.* --name 	  --name: a fixed name so other containers, and the stop script, can find it.
+^docker run.* --network 	  --network: join the shared lab network so containers reach each other by name.
+^docker run.* -p 	  -p HOST:CONTAINER: opens a port. Browse to localhost:HOST and it reaches the app listening on CONTAINER inside.
+^docker run.* -e GEMINI_API_KEY( |$)	  -e GEMINI_API_KEY (no value): copies the key from this window into the container without ever printing it.
+^docker run.* -e [A-Z_]+=	  -e NAME=value: sets an environment variable (a setting) inside the container.
+^docker rm	DOCKER RM -f: stops and deletes a container (-f means even if it is running). An error saying "no such container" is harmless.
+^docker ps	DOCKER PS: lists the containers that are running right now.
+^docker image inspect	DOCKER IMAGE INSPECT: checks whether this image version is already downloaded on this computer.
+^docker manifest inspect	DOCKER MANIFEST INSPECT: asks Docker Hub whether this image version exists, without downloading it.
+^kubectl( -n [^ ]+)? get namespace	KUBECTL GET NAMESPACE: checks whether the namespace exists. A namespace is a named folder inside the cluster.
+^kubectl( -n [^ ]+)? create namespace	KUBECTL CREATE NAMESPACE: makes the namespace. All lab pods live in one called ai-assistant.
+^kubectl( -n [^ ]+)? apply -k	KUBECTL APPLY -k: reads a kustomize folder (the app recipe: Deployment, Service, and the image version) and makes the cluster match it. Changing the image tag in that recipe is how a new version rolls out.
+^kubectl( -n [^ ]+)? rollout status	KUBECTL ROLLOUT STATUS: waits until the new pods are running and healthy, or gives up after the timeout.
+^kubectl( -n [^ ]+)? rollout restart	KUBECTL ROLLOUT RESTART: replaces the pods one by one. New pods re-read their secrets and start with fresh data.
+^kubectl( -n [^ ]+)? get pods	KUBECTL GET PODS: lists the running pods (one pod = one running copy of an app) and whether each is Ready.
+^kubectl( -n [^ ]+)? get deploy	KUBECTL GET DEPLOY: shows each deployment and which image version it is running right now.
+^kubectl( -n [^ ]+)? get svc	KUBECTL GET SVC: lists the services, the stable network addresses and ports in front of the pods.
+^kubectl( -n [^ ]+)? get secrets	KUBECTL GET SECRETS: lists secret names only. The values are never printed.
+^kubectl( -n [^ ]+)? get nodes	KUBECTL GET NODES: checks that kubectl can reach the cluster and that the node is Ready.
+^kubectl( -n [^ ]+)? logs	KUBECTL LOGS: prints what the app wrote to its log, the first place to look when something misbehaves.
+^kubectl( -n [^ ]+)? describe	KUBECTL DESCRIBE: prints the detailed state and recent events, which usually say why a pod would not start (for example image not found).
+^kubectl -n 	  -n <name>: the namespace to act in.
+^kubectl.* -o wide	  -o wide: add extra columns such as the node and the pod IP.
+^kubectl.* --tail=	  --tail=N: only the last N log lines.
+^kubectl.* logs.* -f( |$)	  -f (follow): keep printing new lines as they arrive. Press Ctrl+C to stop.
+^kubectl.* --timeout=	  --timeout: how long to wait before reporting a failure.
+^ssh -t	SSH: opens a secure connection to the VM and runs the command there. -t gives it a real terminal, so prompts (like pasting a key or typing "prod") work.
+^ssh-keygen	SSH-KEYGEN: makes a key pair. The private half stays on this computer; the public half goes on the VM, so the VM knows it is you without asking for a password.
+^python -m pip install	PIP INSTALL: downloads the Python packages the app needs. Anything already installed is skipped, so this is quick the second time. -q means quiet.
+^python -m pip.* -e 	  -e (editable): installs this folder in place, so edits you make to the code take effect immediately.
+^python -m pip.* -r 	  -r <file>: install everything listed in that requirements file.
+^python -m pytest	PYTEST: runs the automated tests. A release only continues if they all pass.
+^python -m uvicorn	UVICORN: the web server that runs the FastAPI app (the same server the Docker image uses).
+^python -m uvicorn.* --reload	  --reload: restart the app automatically whenever you save a code change (for development only).
+^python -m uvicorn.* --port 	  --port: the port the app listens on. Open http://localhost:<port> in a browser.
+^python -m mcp_server	MCP SERVER: starts the fake-company data server and its tools.
+^python -m mcp_server.* --mode vulnerable	  --mode vulnerable: the attack-lab version, with the weak tools left in on purpose.
+^python -m mcp_server.* --mode safe	  --mode safe: the hardened version, with the dangerous tools removed.
+^python -m mcp_server.* --transport	  --transport streamable-http: serve over HTTP, the way the Assistant and the Agents connect.
+^powershell	POWERSHELL: opens a new window for this app. -NoExit keeps the window open, so you can read any error.

@@ -6,6 +6,7 @@ $ErrorActionPreference = "Continue"
 . (Join-Path $PSScriptRoot "lib\common.ps1")
 Require-Command git "Install Git for Windows: https://git-scm.com/download/win"
 
+Intro "GETTING THE CODE: if a repo is not on this computer yet we CLONE it (a full copy from GitHub). If it is, we PULL (download the newest main and merge it in). A change merged on GitHub reaches you this way. A repo with unsaved edits of yours is skipped so nothing is overwritten."
 $root = Get-Root
 if (-not (Test-Path $root)) { Say "Creating $root"; if (-not $Dry) { New-Item -ItemType Directory -Path $root | Out-Null } }
 

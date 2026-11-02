@@ -17,6 +17,7 @@ $path = Assert-RepoExists $a
 $image = Get-Image $a
 $tagFile = Get-AppValue $a "TAG_FILE"
 
+Intro "RELEASING A NEW VERSION: (1) pick a version number, (2) run the tests, (3) build the image, (4) push it to Docker Hub, (5) only then record the version in the repo manifest and push that to GitHub. Doing Docker Hub first means QA is never told to run an image that does not exist yet."
 Push-Location $path
 try {
     Say "Where this repo is"

@@ -15,8 +15,32 @@ ok()   { printf '\033[1;32m OK %s\033[0m\n' "$*"; }
 warn() { printf '\033[1;33m !! %s\033[0m\n' "$*" >&2; }
 die()  { printf '\033[1;31mERROR: %s\033[0m\n' "$*" >&2; exit 1; }
 
+# shellcheck disable=SC2034
+LAB_VERSION="$(cat "$LAB_DIR/VERSION" 2>/dev/null || echo "?")"
+
+# ---- verbose mode (on by default; LAB_VERBOSE=0 turns it off) ----------------------
+# why "text"   : a plain-English note about what the next step is for
+# intro "text" : a short paragraph at the top of a script: what it does and why
+# explain "cmd": prints what a command and its options mean, from lib/explain.txt
+verbose() { [ "${LAB_VERBOSE:-1}" != "0" ]; }
+why()   { verbose && printf '\033[0;32m  # %s\033[0m\n' "$*"; return 0; }
+intro() { verbose && printf '\033[0;32m  # %s\033[0m\n\n' "$*"; return 0; }
+explain() {
+  verbose || return 0
+  local cmd="$1" re txt first=1
+  while IFS=$'\t' read -r re txt; do
+    case "$re" in ''|'#'*) continue ;; esac
+    if [[ "$cmd" =~ $re ]]; then
+      if [ "$first" = 1 ]; then printf '\033[1;32m  # %s\033[0m\n' "$txt"; first=0
+      else printf '\033[0;32m  # %s\033[0m\n' "$txt"; fi
+    fi
+  done < "$LAB_DIR/lib/explain.txt"
+  return 0
+}
+
 # Print a command, then run it (unless dry-run). Use for every real command.
 run() {
+  explain "$*"
   printf '\033[0;33m  $ %s\033[0m\n' "$*"
   [ "$DRY" = "1" ] && return 0
   "$@"
