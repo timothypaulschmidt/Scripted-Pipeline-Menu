@@ -32,6 +32,7 @@ vm_menu() {
     printf '\033[1;36m=== Scripted Pipeline Menu v%s: %s (%s) ===\033[0m\n' "$LAB_VERSION" "$(upper "$e")" "$(env_val "$e" HOST)"
     if verbose; then printf '  Explanations: ON (press v to turn off)\n'; else printf '  Explanations: OFF (press v to turn on)\n'; fi
     [ "$e" = "prod" ] && printf '\033[1;31m  PRODUCTION: changes ask you to type "prod".\033[0m\n'
+    printf '\033[2m   #  %-27s%s\033[0m\n' "What it does" "Script Name"
     cat <<EOF2
    1  Get the code               ($e-01)  clone / pull
    2  Deploy                     ($e-02)  apply the version in each manifest

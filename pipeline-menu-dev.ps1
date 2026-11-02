@@ -38,6 +38,7 @@ while ($true) {
     Write-Host ("=== Scripted Pipeline Menu v" + $global:LabVersion + ": Windows ===") -ForegroundColor Cyan
     if (Test-Verbose) { Write-Host "  Explanations: ON  (press v to turn off)" -ForegroundColor Green } else { Write-Host "  Explanations: OFF (press v to turn on)" -ForegroundColor DarkGray }
     Write-Host "  THIS COMPUTER"
+    Write-Host ("   #  " + "What it does".PadRight(33) + "Script Name") -ForegroundColor DarkGray
     Write-Host "   1  Get the code (clone / pull)      dev-01"
     Write-Host "   2  Run with Python                  dev-02"
     Write-Host "   3  Download Docker images           dev-03"
