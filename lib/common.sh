@@ -18,6 +18,10 @@ die()  { printf '\033[1;31mERROR: %s\033[0m\n' "$*" >&2; exit 1; }
 # shellcheck disable=SC2034
 LAB_VERSION="$(cat "$LAB_DIR/VERSION" 2>/dev/null || echo "?")"
 
+# ---- terminal title: the text at the top of the terminal window ------------------------
+set_title() { printf '\033]0;%s\007' "$*"; }
+set_title "Scripted Pipeline Menu: $(basename "${BASH_SOURCE[1]:-$0}" .sh)"
+
 # ---- verbose mode (on by default; LAB_VERBOSE=0 turns it off) ----------------------
 # why "text"   : a plain-English note about what the next step is for
 # intro "text" : a short paragraph at the top of a script: what it does and why

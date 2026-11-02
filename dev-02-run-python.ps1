@@ -24,6 +24,7 @@ if ($apps.Count -gt 1) {
 }
 
 $a = $apps[0]
+Set-Title ("Python: " + (Get-AppValue $a "REPO"))     # the text at the top of this window
 $path = Assert-RepoExists $a
 Push-Location $path
 try {
