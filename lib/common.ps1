@@ -90,6 +90,21 @@ function Run {
     if ($LASTEXITCODE -ne 0) { Die "'$exe' failed with exit code $LASTEXITCODE" }
 }
 
+# Like Run, but for programs you TYPE into (ssh -t with a prompt). Run pipes output through Out-Host, and
+# PowerShell shows text only when a line ends, so a prompt like "Paste the key: " would stay hidden until you
+# pressed Enter. Here the program talks to your terminal directly, so prompts appear at once.
+function RunInteractive {
+    $exe = [string]$args[0]
+    $rest = @()
+    if ($args.Count -gt 1) { $rest = @($args[1..($args.Count - 1)] | ForEach-Object { [string]$_ }) }
+    $line = $exe + " " + (($rest | ForEach-Object { Format-Arg $_ }) -join " ")
+    Explain $line
+    Write-Host ("  $ " + $line) -ForegroundColor DarkYellow
+    if ($global:Dry) { return }
+    & $exe @rest
+    if ($LASTEXITCODE -ne 0) { Die "'$exe' failed with exit code $LASTEXITCODE" }
+}
+
 # Like Run, but returns $true/$false instead of stopping.
 function TryRun {
     $exe = [string]$args[0]
@@ -298,7 +313,7 @@ function Invoke-Vm {
     Require-Command ssh "Turn on 'OpenSSH Client' in Windows Optional Features."
     $vm = Get-VmInfo $EnvName
     $k = Get-SshKeyArgs $vm
-    Run ssh -t @k ($vm.User + "@" + $vm.Host) $Command
+    RunInteractive ssh -t @k ($vm.User + "@" + $vm.Host) $Command
 }
 
 # Prod needs a typed 'prod' (the VM scripts then run with LAB_YES=1 so you are not asked twice).
