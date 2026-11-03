@@ -192,6 +192,9 @@ vm_status() {
   run kubectl -n "$NAMESPACE" get deploy -o custom-columns=NAME:.metadata.name,READY:.status.readyReplicas,IMAGE:.spec.template.spec.containers[0].image
   say "MCP server mode (vulnerable = 14 tools, safe = 10)"
   printf '  %s\n' "$(mcp_current_mode || true)"
+  say "Traffic route (direct, or through FortiAIGate)"
+  route_show_one assistant || true
+  route_show_one agents || true
   say "Services"
   run kubectl -n "$NAMESPACE" get svc
   say "Secrets (names only)"
@@ -293,6 +296,66 @@ vm_mcp_mode() {
   fi
   if [ "$DRY" != "1" ]; then printf '%s\n' "$want" > "$MCP_MODE_FILE"; fi
   ok "MCP server is in $want mode. Reload the Assistant page to see the tool count change."
+}
+
+# ---- 10: FortiAIGate routing (where each app's traffic goes) ------------------------
+# Each app keeps its route in memory and changes it when asked, with no restart:
+#   direct       the model and MCP are reached directly (the default)
+#   model        the model goes through FortiAIGate; MCP stays direct
+#   model+mcp    the model and the MCP traffic both go through FortiAIGate
+# A pod restart (a new image, a rollout restart) returns that app to direct, which is the safe fallback.
+route_nodeport() { # app -> the NodePort of its Service on this VM
+  local svc
+  case "$1" in assistant) svc=ai-assistant ;; agents) svc=ai-agents ;; *) return 1 ;; esac
+  kubectl -n "$NAMESPACE" get svc "$svc" -o jsonpath='{.spec.ports[0].nodePort}' 2>/dev/null
+}
+
+route_show_one() { # app
+  local port path out
+  port="$(route_nodeport "$1" || true)"
+  if [ -z "$port" ]; then printf '  %-10s not deployed\n' "$1"; return 0; fi
+  case "$1" in assistant) path=/api/status ;; agents) path=/api/state ;; esac
+  out="$(curl -fsS --max-time 8 "http://localhost:$port$path" 2>/dev/null | grep -o '"route":{[^}]*}' | head -1 || true)"
+  if [ -z "$out" ]; then printf '  %-10s not answering yet (is it running, and is it a version with routing?)\n' "$1"
+  else printf '  %-10s %s\n' "$1" "$(printf '%s' "$out" | sed -n 's/.*"label":"\([^"]*\)".*/\1/p')"; fi
+}
+
+# vm_route <env> [assistant|agents|all] [direct|model|model+mcp|show]
+vm_route() {
+  vm_env "$1"; shift
+  require kubectl "k3s should have installed it."
+  require curl "sudo apt install curl"
+  local app="${1:-all}" want="${2:-show}" body port path out code detail a
+  intro "FORTIAIGATE ROUTING: decides where an app sends its traffic. 'model' sends the app's calls to the language model (Gemini or Ollama) through FortiAIGate; 'model+mcp' also sends its tool calls to the MCP server through FortiAIGate; 'direct' bypasses FortiAIGate. The app holds the choice in memory, so it takes effect at once, and a restart of that app puts it back to direct. An option is refused until FortiAIGate's addresses are configured for that app."
+  case "$app" in all|assistant|agents) ;; *) die "Usage: ./${LAB_ENV}-linux/${LAB_ENV}-10-route.sh [assistant|agents|all] [direct|model|model+mcp|show]" ;; esac
+  case "$want" in
+    show)
+      say "Traffic route on $LAB_ENV"
+      if [ "$app" = "all" ]; then route_show_one assistant; route_show_one agents; else route_show_one "$app"; fi
+      return 0 ;;
+    direct)    body='{"route":"direct"}' ;;
+    model)     body='{"route":"faig_model"}' ;;
+    model+mcp) body='{"route":"faig_all"}' ;;
+    *) die "Route must be direct, model, model+mcp or show." ;;
+  esac
+  [ "$app" != "all" ] || die "Pick one app (assistant or agents) to change its route."
+  guard_prod
+  port="$(route_nodeport "$app" || true)"
+  [ -n "$port" ] || die "$app is not deployed on this VM. Ship it first."
+  path="/api/route"
+  say "Setting the $app route to $want"
+  why "CURL: sends the choice to the app's own address on this VM (its NodePort $port). The app answers 200 when it switched, or 400 with the reason when FortiAIGate is not configured for that option yet."
+  printf '  $ curl -sS -X POST -H "Content-Type: application/json" -d %s http://localhost:%s%s\n' "'$body'" "$port" "$path"
+  [ "$DRY" = "1" ] && return 0
+  out="$(curl -sS --max-time 10 -w '\n%{http_code}' -X POST -H 'Content-Type: application/json' -d "$body" "http://localhost:$port$path" 2>&1 || true)"
+  code="$(printf '%s' "$out" | tail -n1)"
+  if [ "$code" = "200" ]; then
+    ok "$app is now: $(printf '%s' "$out" | sed -n 's/.*"label":"\([^"]*\)".*/\1/p')"
+    printf "  If that app restarts it goes back to Direct.\n"
+  else
+    detail="$(printf '%s' "$out" | sed -n 's/.*"detail":"\([^"]*\)".*/\1/p' | head -1)"
+    die "The $app did not switch (HTTP ${code:-none}). ${detail:-$(printf '%s' "$out" | head -1)}"
+  fi
 }
 
 # ---- 06: secrets --------------------------------------------------------------

@@ -4,7 +4,8 @@
 #   .\dev-windows\qa-11-remote.ps1 reset
 #   .\dev-windows\qa-11-remote.ps1 secrets gemini
 #   .\dev-windows\qa-11-remote.ps1 mode safe        (or vulnerable; no word shows the current mode)
-# Actions: pull, deploy, status, logs, reset, secrets, models, mode, urls
+#   .\dev-windows\qa-11-remote.ps1 route agents model+mcp   (assistant|agents  direct|model|model+mcp; no words shows both)
+# Actions: pull, deploy, status, logs, reset, secrets, models, mode, urls, route
 param([string]$Action = "", [Parameter(ValueFromRemainingArguments = $true)][string[]]$Rest)
 $ErrorActionPreference = "Continue"
 . (Join-Path (Split-Path -Parent $PSScriptRoot) "lib\common.ps1")

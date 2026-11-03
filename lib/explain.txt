@@ -40,6 +40,7 @@
 ^kubectl( -n [^ ]+)? create namespace	KUBECTL CREATE NAMESPACE: makes the namespace. All lab pods live in one called ai-assistant.
 ^kubectl( -n [^ ]+)? apply -k	KUBECTL APPLY -k: reads a kustomize folder (the app recipe: Deployment, Service, and the image version) and makes the cluster match it. Changing the image tag in that recipe is how a new version rolls out.
 ^kubectl( -n [^ ]+)? set env	KUBECTL SET ENV: changes an environment variable on a deployment (here MCP_MODE on the MCP server). Kubernetes then replaces the pod so it starts with the new value.
+^curl .*api/route	CURL: sends a web request from this VM to the app's own address. Here it tells the app where to send its traffic. The app answers 200 when it switched, or 400 with the reason when FortiAIGate is not configured for that option.
 ^kubectl( -n [^ ]+)? rollout status	KUBECTL ROLLOUT STATUS: waits until the new pods are running and healthy, or gives up after the timeout.
 ^kubectl( -n [^ ]+)? rollout restart	KUBECTL ROLLOUT RESTART: replaces the pods one by one. New pods re-read their secrets and start with fresh data.
 ^kubectl( -n [^ ]+)? get pods	KUBECTL GET PODS: lists the running pods (one pod = one running copy of an app) and whether each is Ready.
