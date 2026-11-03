@@ -25,7 +25,7 @@ function Invoke-Ship {
         $tag = Get-ManifestTagFromText $lines $image
         if (-not $tag) { Die "No version for $image found in $a's manifest on GitHub main." }
         if (Test-ImageOnHub $image $tag) { Ok "$a : $image`:$tag is on GitHub main and on Docker Hub" }
-        else { Die "$a : GitHub main wants $image`:$tag but that image is not on Docker Hub. Run .\dev-05-docker-build-push.ps1 $a first." }
+        else { Die "$a : GitHub main wants $image`:$tag but that image is not on Docker Hub. Run .\dev-windows\dev-05-docker-build-push.ps1 $a first." }
     }
 
     Confirm-Prod $EnvName
@@ -34,15 +34,15 @@ function Invoke-Ship {
     # One ssh session does it all: update the scripts, update the code, deploy.
     $cmd = "cd " + $vm.Root + "/" + $Lab["MENU_REPO"] + " && git pull --ff-only origin main"
     foreach ($a in $apps) {
-        $cmd += " && " + $yes + "./" + $p + "01-git-pull.sh " + $a
-        $cmd += " && " + $yes + "./" + $p + "02-deploy.sh " + $a
+        $cmd += " && " + $yes + "./" + $EnvName + "-linux/" + $p + "01-git-pull.sh " + $a
+        $cmd += " && " + $yes + "./" + $EnvName + "-linux/" + $p + "02-deploy.sh " + $a
     }
     Say ("Shipping to " + $EnvName + " (" + $vm.Host + ")")
     Invoke-Vm $EnvName $cmd
     Show-Addresses
 }
 
-# Run one of the VM's scripts from Windows.  .\qa-11-remote.ps1 logs agents -f
+# Run one of the VM's scripts from Windows.  .\dev-windows\qa-11-remote.ps1 logs agents -f
 function Invoke-Remote {
     param([string]$EnvName, [string]$Action, [string[]]$Rest)
     $map = [ordered]@{
@@ -56,7 +56,7 @@ function Invoke-Remote {
     if ($readOnly -notcontains $Action) { Confirm-Prod $EnvName }
     $yes = ""; if ($EnvName -eq "prod" -and $readOnly -notcontains $Action) { $yes = "LAB_YES=1 " }
     $vm = Get-VmInfo $EnvName
-    $cmd = "cd " + $vm.Root + "/" + $Lab["MENU_REPO"] + " && " + $yes + "./" + $EnvName + "-" + $map[$Action]
+    $cmd = "cd " + $vm.Root + "/" + $Lab["MENU_REPO"] + " && " + $yes + "./" + $EnvName + "-linux/" + $EnvName + "-" + $map[$Action]
     if ($Rest) { $cmd += " " + ($Rest -join " ") }
     Invoke-Vm $EnvName $cmd
 }

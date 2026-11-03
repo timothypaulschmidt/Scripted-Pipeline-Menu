@@ -16,7 +16,7 @@ ensure_namespace() {
 vm_pull() {
   vm_env "$1"; shift
   local target="${1:-}" list="" t name path
-  [ -n "$target" ] || die "Usage: ${LAB_ENV}-01-git-pull.sh <all|assistant|mcp|agents|menu>"
+  [ -n "$target" ] || die "Usage: ./${LAB_ENV}-linux/${LAB_ENV}-01-git-pull.sh <all|assistant|mcp|agents|menu>"
   require git "Install it with: sudo apt install git"
   intro "GETTING THE CODE: this VM keeps its own clone of each repo (under $ROOT). The first time we clone from GitHub; after that we pull the newest main. Deploys then read the manifests from these clones, so nothing is copied by hand with scp."
   if [ "$target" = "menu" ]; then
@@ -46,9 +46,9 @@ vm_pull() {
 preflight_secrets() {
   case "$1" in
     assistant)
-      secret_exists gemini-api-key || die "Secret gemini-api-key is missing; the pod would not start. Run ./${LAB_ENV}-06-secrets.sh gemini first." ;;
+      secret_exists gemini-api-key || die "Secret gemini-api-key is missing; the pod would not start. Run ./${LAB_ENV}-linux/${LAB_ENV}-06-secrets.sh gemini first." ;;
     mcp|agents)
-      secret_exists mcp-admin || warn "Secret mcp-admin is missing: the reset/insert buttons will be off. Run ./${LAB_ENV}-06-secrets.sh admin" ;;
+      secret_exists mcp-admin || warn "Secret mcp-admin is missing: the reset/insert buttons will be off. Run ./${LAB_ENV}-linux/${LAB_ENV}-06-secrets.sh admin" ;;
   esac
 }
 
@@ -72,7 +72,7 @@ vm_deploy() {
   for a in $apps; do
     dir="$(repo_dir "$a")/$(app_val "$a" "${envup}_DEPLOY")"
     tagfile="$(repo_dir "$a")/$(app_val "$a" TAG_FILE)"
-    [ -d "$dir" ] || die "$dir not found. Run ./${LAB_ENV}-01-git-pull.sh $a first."
+    [ -d "$dir" ] || die "$dir not found. Run ./${LAB_ENV}-linux/${LAB_ENV}-01-git-pull.sh $a first."
     image="$DOCKER_NS/$(app_val "$a" IMAGE)"
     tag="$(manifest_tag "$tagfile" "$image")"
     [ -n "$tag" ] || die "Could not read the image tag for $image from $tagfile"
@@ -136,7 +136,7 @@ vm_logs() {
     mcp)       dep=mcp-server ;;
     agents)    dep=ai-agents ;;
     ollama)    dep=ollama ;;
-    *) die "Usage: ${LAB_ENV}-04-logs.sh <assistant|mcp|agents|ollama> [-f]   (-f keeps following; Ctrl+C to stop)" ;;
+    *) die "Usage: ./${LAB_ENV}-linux/${LAB_ENV}-04-logs.sh <assistant|mcp|agents|ollama> [-f]   (-f keeps following; Ctrl+C to stop)" ;;
   esac
   if [ "$follow" = "-f" ]; then
     run kubectl -n "$NAMESPACE" logs "deploy/$dep" --tail=50 -f
@@ -271,5 +271,5 @@ vm_first_time() {
     apply_secret mcp-admin token "$(openssl rand -hex 24)"
   fi
   say "Next:"
-  printf '  1) ./%s-06-secrets.sh gemini     (paste your Gemini key)\n  2) ./%s-02-deploy.sh all          (deploy everything)\n' "$LAB_ENV" "$LAB_ENV"
+  printf '  1) ./%s-linux/%s-06-secrets.sh gemini     (paste your Gemini key)\n  2) ./%s-linux/%s-02-deploy.sh all          (deploy everything)\n' "$LAB_ENV" "$LAB_ENV" "$LAB_ENV" "$LAB_ENV"
 }

@@ -23,7 +23,7 @@ function Invoke-MenuScript {
     param([string]$Script, [string[]]$ScriptArgs = @())
     Write-Host ""
     Write-Host ("  $ .\" + $Script + " " + ($ScriptArgs -join " ")) -ForegroundColor DarkYellow
-    & $ps -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot $Script) @ScriptArgs
+    & $ps -NoProfile -ExecutionPolicy Bypass -File (Join-Path (Join-Path $PSScriptRoot "dev-windows") $Script) @ScriptArgs
     if ($LASTEXITCODE -ne 0) { Warn "That script stopped with an error (shown above)." }
     Write-Host ""
     [void](Read-Host "Press Enter to return to the menu")

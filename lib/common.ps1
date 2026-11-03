@@ -144,7 +144,7 @@ function Get-RepoUrl { param([string]$Repo) return ("https://github.com/" + $glo
 function Assert-RepoExists {
     param([string]$App)
     $p = Get-RepoPath $App
-    if (-not (Test-Path (Join-Path $p ".git"))) { Die "$p is not cloned yet. Run .\dev-01-git-pull.ps1 $App first." }
+    if (-not (Test-Path (Join-Path $p ".git"))) { Die "$p is not cloned yet. Run .\dev-windows\dev-01-git-pull.ps1 $App first." }
     return $p
 }
 
@@ -229,7 +229,7 @@ function Get-GeminiKey {
         try {
             $s = (Get-Content $f -Raw).Trim() | ConvertTo-SecureString
             return (ConvertTo-PlainText $s)
-        } catch { Warn "The saved key could not be read (different Windows user?). Run .\dev-06-gemini-key.ps1 again."; return $null }
+        } catch { Warn "The saved key could not be read (different Windows user?). Run .\dev-windows\dev-06-gemini-key.ps1 again."; return $null }
     }
     return $null
 }
@@ -243,7 +243,7 @@ function Initialize-GeminiKey {
         $k = ConvertTo-PlainText $s
         if ($k) {
             Save-GeminiKey $s
-            Ok "Saved (encrypted). Change it any time with .\dev-06-gemini-key.ps1"
+            Ok "Saved (encrypted). Change it any time with .\dev-windows\dev-06-gemini-key.ps1"
         }
     }
     if ($k) { $env:GEMINI_API_KEY = $k } else { Warn "Continuing without a Gemini key: only the Ollama model will work." }
