@@ -48,6 +48,11 @@
 ^kubectl( -n [^ ]+)? get nodes	KUBECTL GET NODES: checks that kubectl can reach the cluster and that the node is Ready.
 ^kubectl( -n [^ ]+)? logs	KUBECTL LOGS: prints what the app wrote to its log, the first place to look when something misbehaves.
 ^kubectl( -n [^ ]+)? describe	KUBECTL DESCRIBE: prints the detailed state and recent events, which usually say why a pod would not start (for example image not found).
+^kubectl( -n [^ ]+)? exec	KUBECTL EXEC: runs a command inside a running pod. Here it runs the ollama tool inside the Ollama pod.
+^kubectl.* ollama list	  ollama list: shows the models already downloaded in this pod, so we only download the missing ones.
+^kubectl.* ollama pull	  ollama pull <model>: downloads a language model into the pod. Models are several GB each. They are kept on the ollama-models disk, so they survive pod restarts (but not a rebuild of the Linux machine).
+^kubectl( -n [^ ]+)? get middlewares	KUBECTL GET MIDDLEWARES: checks whether the Traefik redirect-https Middleware exists. Traefik is the web router built into k3s.
+^kubectl( -n [^ ]+)? apply -f -	KUBECTL APPLY -f -: reads a definition from standard input and creates it, or updates it if it already exists.
 ^kubectl -n 	  -n <name>: the namespace to act in.
 ^kubectl.* -o wide	  -o wide: add extra columns such as the node and the pod IP.
 ^kubectl.* --tail=	  --tail=N: only the last N log lines.
