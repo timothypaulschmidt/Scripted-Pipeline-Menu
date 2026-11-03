@@ -150,7 +150,7 @@ Edit `lab.env`, merge, pull on each machine. No script contains these values.
 
 ## Changes
 
-- **2.2.5** The address lists (step 32 and the end of a deploy) also show the in-cluster MCP server and Ollama addresses (`CLUSTER_MCP_URL`, new `CLUSTER_OLLAMA_URL` in `lab.env`).
+- **2.2.5** The address lists (step 32 and the end of a deploy) also show every in-cluster address (MCP server, Ollama, Assistant, Agents: `CLUSTER_*_URL` in `lab.env`) and how to reach them from another namespace such as FortiAIGate.
 - **2.2.4** Secret prompts on the VMs (Gemini key, custom secrets) show one `*` per character typed or pasted, so you can see the paste landed; Backspace works.
 - **2.2.3** Prompts on the VMs (such as "Paste the Gemini API key:") now appear immediately instead of after you press Enter; the ssh calls no longer go through Out-Host.
 - **2.2.2** Prod ssh uses the AWS `.pem` (`PROD_SSH_KEY` in `lab.env`, relative to your Windows home folder) for step 31 and every prod command, so no password or `-i` is needed. Step 31 also adds your key only if it is not already on the VM.

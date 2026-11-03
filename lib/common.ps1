@@ -279,13 +279,19 @@ function Show-Addresses {
     Write-Host ("    AI Agents     {0}" -f $L["QA_AGENTS_URL"])
     Write-Host ("    MCP server    {0}   (inside the cluster only)" -f $L["CLUSTER_MCP_URL"])
     Write-Host ("    Ollama        {0}   (inside the cluster only)" -f $L["CLUSTER_OLLAMA_URL"])
+    Write-Host ("    Assistant     {0}   (inside the cluster only)" -f $L["CLUSTER_ASSISTANT_URL"])
+    Write-Host ("    Agents        {0}   (inside the cluster only)" -f $L["CLUSTER_AGENTS_URL"])
     Write-Host ("    SSH           {0}@{1}" -f $L["QA_USER"], $L["QA_HOST"])
     Write-Host "  Prod"
     Write-Host ("    AI Assistant  {0}" -f $L["PROD_ASSISTANT_URL"])
     Write-Host ("    AI Agents     {0}" -f $L["PROD_AGENTS_URL"])
     Write-Host ("    MCP server    {0}   (inside the cluster only)" -f $L["CLUSTER_MCP_URL"])
     Write-Host ("    Ollama        {0}   (inside the cluster only)" -f $L["CLUSTER_OLLAMA_URL"])
+    Write-Host ("    Assistant     {0}   (inside the cluster only)" -f $L["CLUSTER_ASSISTANT_URL"])
+    Write-Host ("    Agents        {0}   (inside the cluster only)" -f $L["CLUSTER_AGENTS_URL"])
     Write-Host ("    SSH           {0}@{1}" -f $L["PROD_USER"], $L["PROD_HOST"])
+    Write-Host ""
+    Write-Host ("  Inside the cluster these names work only from pods in namespace " + $L["NAMESPACE"] + ". From another namespace (for example FortiAIGate) add the namespace: http://mcp-server." + $L["NAMESPACE"] + ".svc.cluster.local:8000/mcp")
     Write-Host ""
 }
 
