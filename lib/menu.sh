@@ -16,8 +16,8 @@ ask_choice() { # prompt default option... -> chosen value on stdout
 menu_run() { # script args... : run in a subshell so a failure cannot close the menu
   local script="$1"; shift
   printf '\n'
-  printf '\033[0;33m  $ ./%s\033[0m\n' "$script $*"
-  ( cd "$LAB_DIR" && "./$script" "$@" ) || warn "That script stopped with an error (shown above)."
+  printf '\033[0;33m  $ ./%s-linux/%s\033[0m\n' "$LAB_ENV" "$script $*"
+  ( cd "$LAB_DIR" && "./$LAB_ENV-linux/$script" "$@" ) || warn "That script stopped with an error (shown above)."
   printf '\n'
   read -r -p "Press Enter to return to the menu... " _
 }

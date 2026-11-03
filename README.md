@@ -12,6 +12,22 @@ what it runs and stays on screen. Start with a menu instead of remembering scrip
 Each menu choice runs one of the numbered scripts below, shows all its output, and waits for Enter
 before the menu redraws, so you can read any error. The scripts also run on their own without the menu.
 
+## Folder layout
+
+```
+pipeline-menu-dev.ps1    start here on Windows
+pipeline-menu-qa.sh      start here on the QA VM
+pipeline-menu-prod.sh    start here on the prod VM
+README.md  lab.env  VERSION
+dev-windows/   the Windows scripts: dev-00 to dev-09, plus qa-10..12 and prod-10..12 (they drive the VMs over ssh)
+qa-linux/      scripts that run on the QA VM:   qa-00 to qa-09
+prod-linux/    scripts that run on the prod VM: prod-00 to prod-09
+lib/           shared helpers and lib/explain.txt (used by every script)
+```
+
+You normally only start a menu; it runs the numbered scripts for you. A future Mac or Linux workstation
+would get its own `dev-mac/` or `dev-linux/` folder next to these.
+
 ## Version 2: explanations on every step (verbose mode)
 
 Version 2 is built for learning. By default every command is preceded by green comment lines saying
@@ -66,12 +82,12 @@ with `scp` any more: the VMs clone the app repos from GitHub and deploy from tho
 | `qa-0x` / `prod-0x` | the VM itself (bash `.sh`) | work done on the VM |
 | `qa-1x` / `prod-1x` | Windows (`.ps1`) | drive the VM over ssh from your desk |
 
-### Windows (`dev-`)
+### Windows (`dev-windows/`, scripts `dev-`)
 | Script | What it does |
 |---|---|
 | `dev-00-first-time-setup` | once per computer: check tools, make the Docker network, clone everything |
 | `dev-01-git-pull [all/assistant/mcp/agents/menu]` | first time clones, afterwards pulls main (how a merged change reaches you) |
-| `dev-02-run-python [all/app] [-Mode vulnerable/safe]` | run from source; `all` opens one window per app |
+| `dev-02-run-python [all/app] [-Mode vulnerable/safe]` | run from source; `all` opens one tab per app (Windows Terminal) |
 | `dev-03-docker-pull [all/app]` | download the ready-made images (the new-computer docker step) |
 | `dev-04-docker-run [all/app] [-Mode ...]` | run the containers locally |
 | `dev-05-docker-build-push <app>` | shows the current version, suggests the next, tests, builds, pushes, records it in the manifest |
@@ -80,14 +96,14 @@ with `scp` any more: the VMs clone the app repos from GitHub and deploy from tho
 | `dev-08-vm-bootstrap <qa/prod>` | once per VM: ssh key, clone Scripted-Pipeline-Menu there, run its first-time setup |
 | `dev-09-urls` | print every address and port |
 
-### Windows driving a VM (`qa-1x`, `prod-1x`)
+### Windows driving a VM (`dev-windows/`, scripts `qa-1x`, `prod-1x`)
 | Script | What it does |
 |---|---|
 | `qa-10-ship <app/all>` | checks the image is on Docker Hub, then updates and deploys on the VM (prod asks you to type `prod`) |
-| `qa-11-remote <pull/deploy/status/logs/reset/secrets/urls> [args]` | run any VM script from Windows, e.g. `.\qa-11-remote.ps1 logs agents -f` |
+| `qa-11-remote <pull/deploy/status/logs/reset/secrets/urls> [args]` | run any VM script from Windows, e.g. `.\dev-windows\qa-11-remote.ps1 logs agents -f` |
 | `qa-12-gemini-key` | change the Gemini key on that VM (paste hidden), restarts the pods that use it |
 
-### On the VM (`qa-0x`, `prod-0x`, run as `./qa-02-deploy.sh all`)
+### On the VM (`qa-linux/` and `prod-linux/`, scripts `qa-0x`, `prod-0x`, run as `./qa-linux/qa-02-deploy.sh all`)
 | Script | What it does |
 |---|---|
 | `00-first-time-setup` | once: clone the apps, create the namespace and MCP admin token |
@@ -107,25 +123,25 @@ with `scp` any more: the VMs clone the app repos from GitHub and deploy from tho
    mkdir C:\Users\timschmidt\Documents\Projects
    git clone https://github.com/timothypaulschmidt/Scripted-Pipeline-Menu.git C:\Users\timschmidt\Documents\Projects\Scripted-Pipeline-Menu
    ```
-3. `cd C:\Users\timschmidt\Documents\Projects\Scripted-Pipeline-Menu` then `.\dev-00-first-time-setup.ps1`
+3. `cd C:\Users\timschmidt\Documents\Projects\Scripted-Pipeline-Menu` then `.\dev-windows\dev-00-first-time-setup.ps1`
    (if PowerShell refuses scripts: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once).
-4. `.\dev-06-gemini-key.ps1` to store your key.
-5. Docker, first time: `.\dev-03-docker-pull.ps1 all`, then `.\dev-04-docker-run.ps1 all`.
-   Python instead: `.\dev-02-run-python.ps1 all`.
+4. `.\dev-windows\dev-06-gemini-key.ps1` to store your key.
+5. Docker, first time: `.\dev-windows\dev-03-docker-pull.ps1 all`, then `.\dev-windows\dev-04-docker-run.ps1 all`.
+   Python instead: `.\dev-windows\dev-02-run-python.ps1 all`.
 
 **First clone vs later pull:** `git clone` happens once per computer (dev-00 does it). After that, every
-merge Claude's changes get on GitHub reaches you with `.\dev-01-git-pull.ps1 all`.
+merge Claude's changes get on GitHub reaches you with `.\dev-windows\dev-01-git-pull.ps1 all`.
 
 ## A normal release
 
-1. A change is merged on GitHub. `.\dev-01-git-pull.ps1 <app>`
-2. `.\dev-02-run-python.ps1 <app>` or `.\dev-04-docker-run.ps1 <app>` to try it.
-3. `.\dev-05-docker-build-push.ps1 <app>` (asks the new version, builds, pushes, commits the manifest).
-4. `.\qa-10-ship.ps1 <app>`; look at it; then `.\prod-10-ship.ps1 <app>`.
+1. A change is merged on GitHub. `.\dev-windows\dev-01-git-pull.ps1 <app>`
+2. `.\dev-windows\dev-02-run-python.ps1 <app>` or `.\dev-windows\dev-04-docker-run.ps1 <app>` to try it.
+3. `.\dev-windows\dev-05-docker-build-push.ps1 <app>` (asks the new version, builds, pushes, commits the manifest).
+4. `.\dev-windows\qa-10-ship.ps1 <app>`; look at it; then `.\dev-windows\prod-10-ship.ps1 <app>`.
 
 ## New QA or prod VM
 
-`.\dev-08-vm-bootstrap.ps1 qa`, then `.\qa-12-gemini-key.ps1`, then `.\qa-10-ship.ps1 all`.
+`.\dev-windows\dev-08-vm-bootstrap.ps1 qa`, then `.\dev-windows\qa-12-gemini-key.ps1`, then `.\dev-windows\qa-10-ship.ps1 all`.
 
 ## Changing a hostname, port or folder
 
@@ -133,5 +149,6 @@ Edit `lab.env`, merge, pull on each machine. No script contains these values.
 
 ## Changes
 
+- **2.1.0** Folders: the scripts moved into `dev-windows/`, `qa-linux/` and `prod-linux/`; the three menus stay at the top. Script names are unchanged.
 - **2.0.0** Verbose mode: an explanation before every command and an introduction at the start of the main scripts; `v` toggle in the menus; `lib/explain.txt`. Window titles: each window shows the script, the menu, or the app (for example "Python: AI-Assistant") instead of "Windows PowerShell". `dev-02 all` opens the apps as tabs in Windows Terminal (separate windows if it is not installed).
 - **1.0.0** First release: dev, qa and prod scripts and the text menus.
