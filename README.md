@@ -150,6 +150,7 @@ Edit `lab.env`, merge, pull on each machine. No script contains these values.
 
 ## Changes
 
+- **2.2.1** VM scripts use your own kubeconfig (`~/.kube/config`) and, if kubectl cannot reach k3s, stop with the one-time fix instead of a raw permission error.
 - **2.2.0** Deploying the Assistant now also (1) checks for the Traefik `default/redirect-https` Middleware and warns, with the YAML, if it is missing (the cluster setup owns it; the pipeline never writes outside the `ai-assistant` namespace), and (2) downloads the Ollama models listed in `lab.env` (`OLLAMA_MODELS`) when they are missing. New script `qa-07` / `prod-07` and menu items for it.
 - **2.1.4** `dev-05` (menu item 5) accepts `all`, which is now the default: an app whose version is not on Docker Hub yet defaults to being released, an already-published app defaults to skip. Command output no longer mixes into function results.
 - **2.1.3** Deploying the MCP server or the Agents creates the `mcp-admin` token if it is missing (random, never shown), like first-time setup does.
