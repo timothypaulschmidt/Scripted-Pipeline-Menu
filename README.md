@@ -93,7 +93,7 @@ with `scp` any more: the VMs clone the app repos from GitHub and deploy from tho
 | `dev-05-docker-build-push <app/all>` | shows the current version, suggests the next, tests, builds, pushes, records it in the manifest |
 | `dev-06-gemini-key` | save or replace your Gemini key for local runs (encrypted) |
 | `dev-07-docker-stop [all/app]` | stop the local containers |
-| `dev-08-vm-bootstrap <qa/prod>` | once per VM: ssh key, clone Scripted-Pipeline-Menu there, run its first-time setup |
+| `dev-08-vm-bootstrap <qa/prod>` | once per VM: install your ssh key (prod uses the `.pem` named by `PROD_SSH_KEY` in `lab.env`, kept in `~\.ssh` on Windows), clone Scripted-Pipeline-Menu there, run its first-time setup |
 | `dev-09-urls` | print every address and port |
 
 ### Windows driving a VM (`dev-windows/`, scripts `qa-1x`, `prod-1x`)
@@ -150,6 +150,7 @@ Edit `lab.env`, merge, pull on each machine. No script contains these values.
 
 ## Changes
 
+- **2.2.2** Prod ssh uses the AWS `.pem` (`PROD_SSH_KEY` in `lab.env`, relative to your Windows home folder) for step 31 and every prod command, so no password or `-i` is needed. Step 31 also adds your key only if it is not already on the VM.
 - **2.2.1** VM scripts use your own kubeconfig (`~/.kube/config`) and, if kubectl cannot reach k3s, stop with the one-time fix instead of a raw permission error.
 - **2.2.0** Deploying the Assistant now also (1) checks for the Traefik `default/redirect-https` Middleware and warns, with the YAML, if it is missing (the cluster setup owns it; the pipeline never writes outside the `ai-assistant` namespace), and (2) downloads the Ollama models listed in `lab.env` (`OLLAMA_MODELS`) when they are missing. New script `qa-07` / `prod-07` and menu items for it.
 - **2.1.4** `dev-05` (menu item 5) accepts `all`, which is now the default: an app whose version is not on Docker Hub yet defaults to being released, an already-published app defaults to skip. Command output no longer mixes into function results.

@@ -275,7 +275,21 @@ function Get-VmInfo {
     param([string]$EnvName)
     $u = $EnvName.ToUpper()
     $L = $global:Lab
-    return @{ Name = $EnvName; Host = $L[$u + "_HOST"]; User = $L[$u + "_USER"]; Root = $L[$u + "_ROOT"] }
+    $key = ""
+    if ($L[$u + "_SSH_KEY"]) { $key = Join-Path $HOME $L[$u + "_SSH_KEY"] }
+    return @{ Name = $EnvName; Host = $L[$u + "_HOST"]; User = $L[$u + "_USER"]; Root = $L[$u + "_ROOT"]; Key = $key }
+}
+
+# The ssh options that choose the login key: "-i <file>" when lab.env names one, otherwise nothing.
+function Get-SshKeyArgs {
+    param($vm)
+    if (-not $vm.Key) { return ,@() }
+    if (-not (Test-Path $vm.Key)) {
+        if ($global:Dry) { return ,@("-i", $vm.Key) }
+        Die ("This VM needs the ssh key file " + $vm.Key + " (set in lab.env). Copy it there, then run this again.")
+    }
+    Why ("ssh -i: log in with the key file " + $vm.Key + " (set in lab.env). Some VMs, like the AWS one, accept only that key.")
+    return ,@("-i", $vm.Key)
 }
 
 # Run a command line on the VM. -t gives you a real terminal so prompts (like the key paste) work.
@@ -283,7 +297,8 @@ function Invoke-Vm {
     param([string]$EnvName, [string]$Command)
     Require-Command ssh "Turn on 'OpenSSH Client' in Windows Optional Features."
     $vm = Get-VmInfo $EnvName
-    Run ssh -t ($vm.User + "@" + $vm.Host) $Command
+    $k = Get-SshKeyArgs $vm
+    Run ssh -t @k ($vm.User + "@" + $vm.Host) $Command
 }
 
 # Prod needs a typed 'prod' (the VM scripts then run with LAB_YES=1 so you are not asked twice).
