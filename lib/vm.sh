@@ -56,18 +56,19 @@ ensure_admin_token() {
 }
 
 # The QA/prod Ingress sends http:// visitors to https:// through a Traefik Middleware called
-# default/redirect-https. The FortiAIGate installer creates it too; applying it twice is harmless.
-ensure_traefik_middleware() {
-  why "The Assistant's Ingress (QA and prod) points at a Traefik Middleware named default/redirect-https, which sends HTTP visitors to HTTPS. If it is missing, the Ingress points at nothing."
+# default/redirect-https. That object belongs to the cluster layer (k3s / Traefik / FortiAIGate
+# setup), not to this pipeline, so we only CHECK for it and warn. The app still works on its
+# NodePort without it; only the https:// address misbehaves.
+check_traefik_middleware() {
+  why "The Assistant's Ingress (QA and prod) points at a Traefik Middleware named default/redirect-https, which sends HTTP visitors to HTTPS. It belongs to the cluster setup, so this script only checks that it is there."
   if kubectl -n default get middlewares.traefik.io redirect-https >/dev/null 2>&1; then
-    why "Middleware default/redirect-https already exists, so it is left alone."
+    ok "Traefik Middleware default/redirect-https exists"
     return 0
   fi
-  say "Creating the Traefik redirect-https Middleware (it does not exist yet)"
-  explain "kubectl apply -f -"
-  printf '\033[0;33m  $ kubectl apply -f -   (a Middleware named redirect-https in namespace default: redirectScheme https, permanent)\033[0m\n'
-  [ "$DRY" = "1" ] && return 0
-  kubectl apply -f - <<'MWEOF' || die "Could not create the Middleware. Is Traefik (built into k3s) running?"
+  warn "Traefik Middleware default/redirect-https is MISSING. The https:// address will not redirect until it exists."
+  warn "The app still works on its NodePort (see the addresses below). Create the Middleware in your k3s/FortiAIGate setup (FAIG's installer makes it), or run this once on the cluster:"
+  cat >&2 <<'MWEOF'
+kubectl apply -f - <<'EOF'
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
@@ -77,7 +78,9 @@ spec:
   redirectScheme:
     scheme: https
     permanent: true
+EOF
 MWEOF
+  return 0
 }
 
 # ---- 02: deploy ---------------------------------------------------------------
@@ -118,7 +121,7 @@ vm_deploy() {
     say "Deploying $a: $image:$tag to $LAB_ENV"
     ensure_namespace
     preflight_secrets "$a"
-    if [ "$a" = "assistant" ]; then ensure_traefik_middleware; pull_models=1; fi
+    if [ "$a" = "assistant" ]; then check_traefik_middleware; pull_models=1; fi
     run kubectl apply -k "$dir"
     if ! run kubectl -n "$NAMESPACE" rollout status "deployment/$dep" --timeout=300s; then
       warn "$dep did not become ready in time. Is the image $image:$tag on Docker Hub? Details:"
@@ -330,7 +333,7 @@ vm_first_time() {
   vm_pull "$LAB_ENV" all
   ensure_namespace
   ensure_admin_token
-  ensure_traefik_middleware
+  check_traefik_middleware
   say "Next:"
   printf '  1) ./%s-linux/%s-06-secrets.sh gemini     (paste your Gemini key)\n  2) ./%s-linux/%s-02-deploy.sh all          (deploy everything)\n' "$LAB_ENV" "$LAB_ENV" "$LAB_ENV" "$LAB_ENV"
 }
