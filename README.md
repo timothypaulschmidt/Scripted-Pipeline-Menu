@@ -150,6 +150,7 @@ Edit `lab.env`, merge, pull on each machine. No script contains these values.
 
 ## Changes
 
+- **2.2.3** Prompts on the VMs (such as "Paste the Gemini API key:") now appear immediately instead of after you press Enter; the ssh calls no longer go through Out-Host.
 - **2.2.2** Prod ssh uses the AWS `.pem` (`PROD_SSH_KEY` in `lab.env`, relative to your Windows home folder) for step 31 and every prod command, so no password or `-i` is needed. Step 31 also adds your key only if it is not already on the VM.
 - **2.2.1** VM scripts use your own kubeconfig (`~/.kube/config`) and, if kubectl cannot reach k3s, stop with the one-time fix instead of a raw permission error.
 - **2.2.0** Deploying the Assistant now also (1) checks for the Traefik `default/redirect-https` Middleware and warns, with the YAML, if it is missing (the cluster setup owns it; the pipeline never writes outside the `ai-assistant` namespace), and (2) downloads the Ollama models listed in `lab.env` (`OLLAMA_MODELS`) when they are missing. New script `qa-07` / `prod-07` and menu items for it.
