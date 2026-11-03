@@ -47,13 +47,14 @@ function Invoke-Remote {
     param([string]$EnvName, [string]$Action, [string[]]$Rest)
     $map = [ordered]@{
         "pull" = "01-git-pull.sh"; "deploy" = "02-deploy.sh"; "status" = "03-status.sh"; "logs" = "04-logs.sh";
-        "reset" = "05-reset-mcp-data.sh"; "secrets" = "06-secrets.sh"; "models" = "07-pull-models.sh"; "mode" = "08-mcp-mode.sh"; "urls" = "09-urls.sh"
+        "reset" = "05-reset-mcp-data.sh"; "secrets" = "06-secrets.sh"; "models" = "07-pull-models.sh"; "mode" = "08-mcp-mode.sh"; "urls" = "09-urls.sh"; "route" = "10-route.sh"
     }
     if (-not $Action -or -not $map.Contains($Action)) {
         Die ("Usage: .\" + $EnvName + "-11-remote.ps1 <" + ($map.Keys -join "|") + "> [arguments]   e.g. logs agents -f")
     }
     $readOnly = @("status", "logs", "urls")
     $isRead = ($readOnly -contains $Action) -or ($Action -eq "mode" -and -not $Rest)   # "mode" with no argument only shows the mode
+    if ($Action -eq "route" -and (-not $Rest -or $Rest.Count -lt 2 -or $Rest[-1] -eq "show")) { $isRead = $true }   # route with no change only shows
     if (-not $isRead) { Confirm-Prod $EnvName }
     $yes = ""; if ($EnvName -eq "prod" -and -not $isRead) { $yes = "LAB_YES=1 " }
     $vm = Get-VmInfo $EnvName

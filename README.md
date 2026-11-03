@@ -116,6 +116,7 @@ with `scp` any more: the VMs clone the app repos from GitHub and deploy from tho
 | `07-pull-models [model ...]` | download the Ollama language models from `OLLAMA_MODELS` in `lab.env`; skips ones already there. Deploying the Assistant runs this for you (set `LAB_SKIP_MODELS=1` to skip) |
 | `08-mcp-mode` | show or switch the MCP server mode: `./qa-linux/qa-08-mcp-mode.sh safe` (remembered on the VM; a deploy keeps it) |
 | `09-urls` | print every address |
+| `10-route` | show or change where an app's traffic goes: `./qa-linux/qa-10-route.sh agents model+mcp` (`direct`, `model` or `model+mcp`, for `assistant` or `agents`) |
 
 ## New Windows computer, step by step
 
@@ -151,6 +152,7 @@ Edit `lab.env`, merge, pull on each machine. No script contains these values.
 
 ## Changes
 
+- **2.4.0** FortiAIGate routing for each app, from the pipeline: menu 18 (QA) / 28 (prod), `r` on the VM menus, or `*-10-route.sh`. Options per app: direct, model, model+mcp. Needs the new AI-Assistant and AI-Agents versions; the choice is held by the app (a restart returns it to direct). Status shows the current routes.
 - **2.3.1** Windows menu headings are colored: THIS COMPUTER blue, QA yellow, PROD red, SETUP / INFO magenta.
 - **2.3.0** Switch the MCP server between `vulnerable` (14 tools) and `safe` (10) on QA and prod without a git change: menu 17 / 27 (or `*-08-mcp-mode.sh`). The choice is remembered on the VM, so later deploys keep it; status shows the current mode. Dev menus 2 and 4 already ask for the mode.
 - **2.2.5** The address lists (step 32 and the end of a deploy) also show every in-cluster address (MCP server, Ollama, Assistant, Agents: `CLUSTER_*_URL` in `lab.env`) and how to reach them from another namespace such as FortiAIGate.

@@ -43,6 +43,7 @@ vm_menu() {
    7  Addresses                  ($e-09)
    8  Download language models   ($e-07)  Ollama models from lab.env
    9  MCP mode                   ($e-08)  vulnerable or safe
+   r  FortiAIGate routing        ($e-10)  direct / model / model+mcp
    0  First-time setup           ($e-00)  once per VM
    v  Turn explanations on/off
    q  Quit
@@ -61,6 +62,9 @@ EOF2
       8) menu_run "$e-07-pull-models.sh" ;;
       9) a="$(ask_choice "MCP mode" show show vulnerable safe)"
          if [ "$a" = "show" ]; then menu_run "$e-08-mcp-mode.sh"; else menu_run "$e-08-mcp-mode.sh" "$a"; fi ;;
+      r|R) a="$(ask_choice "Which app" show show assistant agents)"
+         if [ "$a" = "show" ]; then menu_run "$e-10-route.sh"; else
+           m="$(ask_choice "Route" direct direct model model+mcp)"; menu_run "$e-10-route.sh" "$a" "$m"; fi ;;
       0) menu_run "$e-00-first-time-setup.sh" ;;
       v|V) if verbose; then export LAB_VERBOSE=0; else export LAB_VERBOSE=1; fi ;;
       q|Q) return 0 ;;

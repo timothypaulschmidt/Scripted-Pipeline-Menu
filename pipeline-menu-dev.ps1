@@ -69,6 +69,7 @@ while ($true) {
     Write-Host "  15  QA change Gemini key             qa-12"
     Write-Host "  16  QA download language models     qa-11"
     Write-Host "  17  QA MCP mode (vulnerable/safe)    qa-11"
+    Write-Host "  18  QA FortiAIGate routing           qa-11"
     Write-Host "  PROD (ssh to $($Lab['PROD_HOST']))" -ForegroundColor Red
     Write-Host "  21  Ship to PROD                     prod-10"
     Write-Host "  22  PROD status                      prod-11"
@@ -77,6 +78,7 @@ while ($true) {
     Write-Host "  25  PROD change Gemini key           prod-12"
     Write-Host "  26  PROD download language models    prod-11"
     Write-Host "  27  PROD MCP mode (vulnerable/safe)  prod-11"
+    Write-Host "  28  PROD FortiAIGate routing         prod-11"
     Write-Host "  SETUP / INFO" -ForegroundColor Magenta
     Write-Host "  30  Set up this computer             dev-00"
     Write-Host "  31  Set up a VM (ssh key, clone)     dev-08"
@@ -110,6 +112,13 @@ while ($true) {
             $e = if ($c -eq "17") { "qa" } else { "prod" }
             $m = Ask-Choice "MCP mode" "show" @("show", "vulnerable", "safe")
             $x = @("mode"); if ($m -ne "show") { $x += $m }
+            Invoke-MenuScript ($e + "-11-remote.ps1") $x
+        }
+        { $_ -in "18", "28" } {
+            $e = if ($c -eq "18") { "qa" } else { "prod" }
+            $a = Ask-Choice "Which app" "show" @("show", "assistant", "agents")
+            $x = @("route")
+            if ($a -ne "show") { $r = Ask-Choice "Route" "direct" @("direct", "model", "model+mcp"); $x += @($a, $r) }
             Invoke-MenuScript ($e + "-11-remote.ps1") $x
         }
         { $_ -in "15", "25" } { $e = if ($c -eq "15") { "qa" } else { "prod" }; Invoke-MenuScript ($e + "-12-gemini-key.ps1") }
