@@ -19,6 +19,11 @@ $menuTitle = "Scripted Pipeline Menu v" + $global:LabVersion + ": Windows"
 Set-Title $menuTitle
 $ps = (Get-Process -Id $PID).Path     # the same PowerShell that is running this menu
 
+# Heading colors: THIS COMPUTER blue, QA yellow, PROD red, SETUP / INFO magenta.
+# Blue text cannot be read on the old dark-blue PowerShell window, so there it falls back to cyan.
+$HeadBlue = "Blue"
+try { if (@("DarkMagenta", "DarkBlue") -contains [string]$Host.UI.RawUI.BackgroundColor) { $HeadBlue = "Cyan" } } catch { }
+
 function Ask-Choice {
     param([string]$Prompt, [string]$Default, [string[]]$Options)
     while ($true) {
@@ -47,7 +52,7 @@ while ($true) {
     Clear-Host
     Write-Host ("=== Scripted Pipeline Menu v" + $global:LabVersion + ": Windows ===") -ForegroundColor Cyan
     if (Test-Verbose) { Write-Host "  Explanations: ON  (press v to turn off)" -ForegroundColor Green } else { Write-Host "  Explanations: OFF (press v to turn on)" -ForegroundColor DarkGray }
-    Write-Host "  THIS COMPUTER"
+    Write-Host "  THIS COMPUTER" -ForegroundColor $HeadBlue
     Write-Host ("   #  " + "What it does".PadRight(33) + "Script Name") -ForegroundColor DarkGray
     Write-Host "   1  Get the code (clone / pull)      dev-01"
     Write-Host "   2  Run with Python                  dev-02"
@@ -56,7 +61,7 @@ while ($true) {
     Write-Host "   5  Build + push a new version       dev-05"
     Write-Host "   6  Save / change my Gemini key      dev-06"
     Write-Host "   7  Stop Docker containers           dev-07"
-    Write-Host "  QA   (ssh to $($Lab['QA_HOST']))"
+    Write-Host "  QA   (ssh to $($Lab['QA_HOST']))" -ForegroundColor Yellow
     Write-Host "  11  Ship to QA                       qa-10"
     Write-Host "  12  QA status                        qa-11"
     Write-Host "  13  QA logs                          qa-11"
@@ -72,7 +77,7 @@ while ($true) {
     Write-Host "  25  PROD change Gemini key           prod-12"
     Write-Host "  26  PROD download language models    prod-11"
     Write-Host "  27  PROD MCP mode (vulnerable/safe)  prod-11"
-    Write-Host "  SETUP / INFO"
+    Write-Host "  SETUP / INFO" -ForegroundColor Magenta
     Write-Host "  30  Set up this computer             dev-00"
     Write-Host "  31  Set up a VM (ssh key, clone)     dev-08"
     Write-Host "  32  Show every address               dev-09"
