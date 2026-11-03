@@ -80,7 +80,7 @@ while ($true) {
         "2"  { $a = Ask-Choice "Which app" "all" $all; $m = Ask-Choice "MCP mode" "vulnerable" @("vulnerable", "safe"); Invoke-MenuScript "dev-02-run-python.ps1" @($a, "-Mode", $m) }
         "3"  { $a = Ask-Choice "Which app" "all" $all; Invoke-MenuScript "dev-03-docker-pull.ps1" @($a) }
         "4"  { $a = Ask-Choice "Which app" "all" $all; $m = Ask-Choice "MCP mode" "vulnerable" @("vulnerable", "safe"); Invoke-MenuScript "dev-04-docker-run.ps1" @($a, "-Mode", $m) }
-        "5"  { $a = Ask-Choice "Which app" "agents" $one; Invoke-MenuScript "dev-05-docker-build-push.ps1" @($a) }
+        "5"  { $a = Ask-Choice "Which app" "all" $all; Invoke-MenuScript "dev-05-docker-build-push.ps1" @($a) }
         "6"  { Invoke-MenuScript "dev-06-gemini-key.ps1" }
         "7"  { $a = Ask-Choice "Which app" "all" $all; Invoke-MenuScript "dev-07-docker-stop.ps1" @($a) }
         { $_ -in "11", "21" } {

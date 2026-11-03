@@ -86,7 +86,7 @@ function Run {
     Explain $line
     Write-Host ("  $ " + $line) -ForegroundColor DarkYellow
     if ($global:Dry) { return }
-    & $exe @rest
+    & $exe @rest | Out-Host        # Out-Host: show it, but keep it out of any function's return value
     if ($LASTEXITCODE -ne 0) { Die "'$exe' failed with exit code $LASTEXITCODE" }
 }
 
@@ -99,7 +99,7 @@ function TryRun {
     Explain $line
     Write-Host ("  $ " + $line) -ForegroundColor DarkYellow
     if ($global:Dry) { return $true }
-    & $exe @rest
+    & $exe @rest | Out-Host
     return ($LASTEXITCODE -eq 0)
 }
 
