@@ -100,7 +100,7 @@ with `scp` any more: the VMs clone the app repos from GitHub and deploy from tho
 | Script | What it does |
 |---|---|
 | `qa-10-ship <app/all>` | checks the image is on Docker Hub, then updates and deploys on the VM (prod asks you to type `prod`) |
-| `qa-11-remote <pull/deploy/status/logs/reset/secrets/urls> [args]` | run any VM script from Windows, e.g. `.\dev-windows\qa-11-remote.ps1 logs agents -f` |
+| `qa-11-remote <pull/deploy/status/logs/reset/secrets/models/urls> [args]` | run any VM script from Windows, e.g. `.\dev-windows\qa-11-remote.ps1 logs agents -f` |
 | `qa-12-gemini-key` | change the Gemini key on that VM (paste hidden), restarts the pods that use it |
 
 ### On the VM (`qa-linux/` and `prod-linux/`, scripts `qa-0x`, `prod-0x`, run as `./qa-linux/qa-02-deploy.sh all`)
@@ -113,6 +113,7 @@ with `scp` any more: the VMs clone the app repos from GitHub and deploy from tho
 | `04-logs <assistant/mcp/agents/ollama> [-f]` | logs |
 | `05-reset-mcp-data` | put the MCP data back to seed data |
 | `06-secrets [gemini/admin/custom/show]` | change secrets without ever showing them |
+| `07-pull-models [model ...]` | download the Ollama language models from `OLLAMA_MODELS` in `lab.env`; skips ones already there. Deploying the Assistant runs this for you (set `LAB_SKIP_MODELS=1` to skip) |
 | `09-urls` | print every address |
 
 ## New Windows computer, step by step
@@ -149,6 +150,7 @@ Edit `lab.env`, merge, pull on each machine. No script contains these values.
 
 ## Changes
 
+- **2.2.0** Deploying the Assistant now also (1) creates the Traefik `default/redirect-https` Middleware when it is missing, and (2) downloads the Ollama models listed in `lab.env` (`OLLAMA_MODELS`) when they are missing. New script `qa-07` / `prod-07` and menu items for it. After a Linux rebuild the only manual steps left are OS, k3s, GPU setup, tools, DNS and firewall.
 - **2.1.4** `dev-05` (menu item 5) accepts `all`, which is now the default: an app whose version is not on Docker Hub yet defaults to being released, an already-published app defaults to skip. Command output no longer mixes into function results.
 - **2.1.3** Deploying the MCP server or the Agents creates the `mcp-admin` token if it is missing (random, never shown), like first-time setup does.
 - **2.1.2** `dev-03` checks Docker Hub first and, for a version nobody has pushed yet, says so and how to build it instead of failing. Two menu labels shortened so the columns line up.

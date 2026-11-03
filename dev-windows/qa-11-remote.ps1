@@ -3,7 +3,7 @@
 #   .\dev-windows\qa-11-remote.ps1 logs agents -f
 #   .\dev-windows\qa-11-remote.ps1 reset
 #   .\dev-windows\qa-11-remote.ps1 secrets gemini
-# Actions: pull, deploy, status, logs, reset, secrets, urls
+# Actions: pull, deploy, status, logs, reset, secrets, models, urls
 param([string]$Action = "", [Parameter(ValueFromRemainingArguments = $true)][string[]]$Rest)
 $ErrorActionPreference = "Continue"
 . (Join-Path (Split-Path -Parent $PSScriptRoot) "lib\common.ps1")

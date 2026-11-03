@@ -55,6 +55,31 @@ ensure_admin_token() {
   apply_secret mcp-admin token "$(openssl rand -hex 24)"
 }
 
+# The QA/prod Ingress sends http:// visitors to https:// through a Traefik Middleware called
+# default/redirect-https. The FortiAIGate installer creates it too; applying it twice is harmless.
+ensure_traefik_middleware() {
+  why "The Assistant's Ingress (QA and prod) points at a Traefik Middleware named default/redirect-https, which sends HTTP visitors to HTTPS. If it is missing, the Ingress points at nothing."
+  if kubectl -n default get middlewares.traefik.io redirect-https >/dev/null 2>&1; then
+    why "Middleware default/redirect-https already exists, so it is left alone."
+    return 0
+  fi
+  say "Creating the Traefik redirect-https Middleware (it does not exist yet)"
+  explain "kubectl apply -f -"
+  printf '\033[0;33m  $ kubectl apply -f -   (a Middleware named redirect-https in namespace default: redirectScheme https, permanent)\033[0m\n'
+  [ "$DRY" = "1" ] && return 0
+  kubectl apply -f - <<'MWEOF' || die "Could not create the Middleware. Is Traefik (built into k3s) running?"
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-https
+  namespace: default
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+MWEOF
+}
+
 # ---- 02: deploy ---------------------------------------------------------------
 preflight_secrets() {
   case "$1" in
@@ -77,7 +102,7 @@ show_address() {
 vm_deploy() {
   vm_env "$1"; shift
   require kubectl "k3s should have installed it."
-  local apps a dir tagfile image tag dep envup
+  local apps a dir tagfile image tag dep envup pull_models=0
   apps="$(resolve_apps "${1:-}")"
   envup="$(upper "$LAB_ENV")"
   intro "DEPLOYING to $LAB_ENV: for each app we read the image version from its manifest (deploy/.../kustomization.yaml, the newTag line), make sure the secrets it needs exist, tell Kubernetes to match the manifest, then wait until the new pod is healthy. A new version rolls out simply because the newTag changed."
@@ -93,6 +118,7 @@ vm_deploy() {
     say "Deploying $a: $image:$tag to $LAB_ENV"
     ensure_namespace
     preflight_secrets "$a"
+    if [ "$a" = "assistant" ]; then ensure_traefik_middleware; pull_models=1; fi
     run kubectl apply -k "$dir"
     if ! run kubectl -n "$NAMESPACE" rollout status "deployment/$dep" --timeout=300s; then
       warn "$dep did not become ready in time. Is the image $image:$tag on Docker Hub? Details:"
@@ -103,7 +129,34 @@ vm_deploy() {
     ok "$a is running $image:$tag"
     show_address "$a"
   done
+  if [ "$pull_models" = 1 ] && [ "${LAB_SKIP_MODELS:-0}" != "1" ]; then
+    vm_pull_models "$LAB_ENV"
+  fi
   vm_urls "$LAB_ENV"
+}
+
+# ---- 07: language models for Ollama ---------------------------------------------------
+# vm_pull_models <env> [model ...]   (no models given: the OLLAMA_MODELS list in lab.env)
+vm_pull_models() {
+  vm_env "$1"; shift
+  require kubectl "k3s should have installed it."
+  local models=("$@") m have
+  if [ "${#models[@]}" -eq 0 ]; then read -r -a models <<< "$OLLAMA_MODELS"; fi
+  intro "LANGUAGE MODELS: the Assistant's local model runs inside the Ollama pod, which starts with no models. Each model is a multi-GB download kept on the ollama-models disk. We only download the ones that are missing, so running this again is quick."
+  say "Waiting for the Ollama pod to be ready (its image is large; the first start takes a few minutes)"
+  run kubectl -n "$NAMESPACE" rollout status deployment/ollama --timeout=900s \
+    || die "The Ollama pod is not ready. Check: ./${LAB_ENV}-linux/${LAB_ENV}-04-logs.sh ollama"
+  have="$(kubectl -n "$NAMESPACE" exec deploy/ollama -- ollama list 2>/dev/null | awk 'NR>1 {print $1}')"
+  for m in "${models[@]}"; do
+    if grep -qxF "$m" <<< "$have"; then
+      ok "$m is already downloaded"
+      continue
+    fi
+    say "Downloading $m (several minutes; progress shows below)"
+    run kubectl -n "$NAMESPACE" exec deploy/ollama -- ollama pull "$m" \
+      || die "Could not download $m. The Ollama pod may lack internet access or disk space."
+    ok "$m downloaded"
+  done
 }
 
 # ---- 03: status ---------------------------------------------------------------
@@ -277,6 +330,7 @@ vm_first_time() {
   vm_pull "$LAB_ENV" all
   ensure_namespace
   ensure_admin_token
+  ensure_traefik_middleware
   say "Next:"
   printf '  1) ./%s-linux/%s-06-secrets.sh gemini     (paste your Gemini key)\n  2) ./%s-linux/%s-02-deploy.sh all          (deploy everything)\n' "$LAB_ENV" "$LAB_ENV" "$LAB_ENV" "$LAB_ENV"
 }

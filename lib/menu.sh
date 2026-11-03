@@ -41,6 +41,7 @@ vm_menu() {
    5  Reset MCP data             ($e-05)
    6  Secrets / Gemini key       ($e-06)
    7  Addresses                  ($e-09)
+   8  Download language models   ($e-07)  Ollama models from lab.env
    0  First-time setup           ($e-00)  once per VM
    v  Turn explanations on/off
    q  Quit
@@ -56,6 +57,7 @@ EOF2
       5) menu_run "$e-05-reset-mcp-data.sh" ;;
       6) menu_run "$e-06-secrets.sh" ;;
       7) menu_run "$e-09-urls.sh" ;;
+      8) menu_run "$e-07-pull-models.sh" ;;
       0) menu_run "$e-00-first-time-setup.sh" ;;
       v|V) if verbose; then export LAB_VERBOSE=0; else export LAB_VERBOSE=1; fi ;;
       q|Q) return 0 ;;
