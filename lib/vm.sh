@@ -4,7 +4,24 @@
 
 secret_exists() { kubectl -n "$NAMESPACE" get secret "$1" >/dev/null 2>&1; }
 
+# ---- cluster access: let kubectl talk to k3s as a normal user -----------------------
+# k3s writes its login file to /etc/rancher/k3s/k3s.yaml, readable only by root. Your own copy
+# lives at ~/.kube/config. This uses it when it exists, and explains the one-time fix when not.
+[ -r "$HOME/.kube/config" ] && export KUBECONFIG="$HOME/.kube/config"
+
+kube_access() {
+  [ -r "$HOME/.kube/config" ] && export KUBECONFIG="$HOME/.kube/config"
+  if kubectl get nodes >/dev/null 2>&1; then return 0; fi
+  warn "kubectl cannot reach the cluster as $(id -un)."
+  warn "k3s keeps its login file in /etc/rancher/k3s/k3s.yaml where only root can read it."
+  warn "One-time fix on this VM (makes your own copy of that file), then run this step again:"
+  # shellcheck disable=SC2016
+  printf '    mkdir -p ~/.kube && sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config && sudo chown "$(id -un)": ~/.kube/config && chmod 600 ~/.kube/config\n' >&2
+  die "No cluster access yet."
+}
+
 ensure_namespace() {
+  kube_access
   why "Checking that the namespace exists first, because every app and secret lives inside it."
   if ! kubectl get namespace "$NAMESPACE" >/dev/null 2>&1; then
     say "Creating namespace $NAMESPACE (first deploy on this cluster)"
@@ -328,6 +345,8 @@ vm_first_time() {
   require git "sudo apt install git"
   require kubectl "k3s should have installed it."
   say "Checking that kubectl can reach the cluster"
+  why "Your own login file for k3s (~/.kube/config) is used if it exists. If not, this stops and shows the one-time command to make it."
+  kube_access
   run kubectl get nodes
   say "Cloning the app repos next to Scripted-Pipeline-Menu"
   vm_pull "$LAB_ENV" all
