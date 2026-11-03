@@ -90,7 +90,7 @@ with `scp` any more: the VMs clone the app repos from GitHub and deploy from tho
 | `dev-02-run-python [all/app] [-Mode vulnerable/safe]` | run from source; `all` opens one tab per app (Windows Terminal) |
 | `dev-03-docker-pull [all/app]` | download the ready-made images (the new-computer docker step) |
 | `dev-04-docker-run [all/app] [-Mode ...]` | run the containers locally |
-| `dev-05-docker-build-push <app>` | shows the current version, suggests the next, tests, builds, pushes, records it in the manifest |
+| `dev-05-docker-build-push <app/all>` | shows the current version, suggests the next, tests, builds, pushes, records it in the manifest |
 | `dev-06-gemini-key` | save or replace your Gemini key for local runs (encrypted) |
 | `dev-07-docker-stop [all/app]` | stop the local containers |
 | `dev-08-vm-bootstrap <qa/prod>` | once per VM: ssh key, clone Scripted-Pipeline-Menu there, run its first-time setup |
@@ -149,6 +149,7 @@ Edit `lab.env`, merge, pull on each machine. No script contains these values.
 
 ## Changes
 
+- **2.1.4** `dev-05` (menu item 5) accepts `all`, which is now the default: an app whose version is not on Docker Hub yet defaults to being released, an already-published app defaults to skip. Command output no longer mixes into function results.
 - **2.1.3** Deploying the MCP server or the Agents creates the `mcp-admin` token if it is missing (random, never shown), like first-time setup does.
 - **2.1.2** `dev-03` checks Docker Hub first and, for a version nobody has pushed yet, says so and how to build it instead of failing. Two menu labels shortened so the columns line up.
 - **2.1.1** `pipeline-menu-dev.ps1` reopens itself in Windows Terminal when started from a classic PowerShell window, so `dev-02 all` tabs open beside it. Set `$env:LAB_NO_WT = "1"` to stay put.
