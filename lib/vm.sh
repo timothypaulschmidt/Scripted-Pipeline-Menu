@@ -279,9 +279,17 @@ restart_deployments() {
   done
 }
 
-read_secret_value() { # prompt -> value on stdout (typed value is not echoed)
-  local v
-  read -rsp "$1: " v; printf '\n' >&2
+read_secret_value() { # prompt -> value on stdout; shows one * per typed character (never the text itself)
+  local v="" ch
+  printf '%s: ' "$1" >&2
+  while IFS= read -rs -n1 ch; do
+    case "$ch" in
+      ''|$'\r') break ;;                                   # Enter
+      $'\177'|$'\b') if [ -n "$v" ]; then v="${v%?}"; printf '\b \b' >&2; fi ;;   # Backspace
+      *) v+="$ch"; printf '*' >&2 ;;
+    esac
+  done
+  printf '\n' >&2
   [ -n "$v" ] || die "Nothing entered."
   printf '%s' "$v"
 }
