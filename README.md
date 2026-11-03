@@ -149,6 +149,7 @@ Edit `lab.env`, merge, pull on each machine. No script contains these values.
 
 ## Changes
 
+- **2.1.1** `pipeline-menu-dev.ps1` reopens itself in Windows Terminal when started from a classic PowerShell window, so `dev-02 all` tabs open beside it. Set `$env:LAB_NO_WT = "1"` to stay put.
 - **2.1.0** Folders: the scripts moved into `dev-windows/`, `qa-linux/` and `prod-linux/`; the three menus stay at the top. Script names are unchanged.
 - **2.0.0** Verbose mode: an explanation before every command and an introduction at the start of the main scripts; `v` toggle in the menus; `lib/explain.txt`. Window titles: each window shows the script, the menu, or the app (for example "Python: AI-Assistant") instead of "Windows PowerShell". `dev-02 all` opens the apps as tabs in Windows Terminal (separate windows if it is not installed).
 - **1.0.0** First release: dev, qa and prod scripts and the text menus.

@@ -5,6 +5,16 @@
 $ErrorActionPreference = "Continue"
 . (Join-Path $PSScriptRoot "lib\common.ps1")
 
+# A classic PowerShell window cannot show tabs. If Windows Terminal is installed and we are not
+# already inside it, reopen this menu there, so the apps from dev-02 open as tabs beside it.
+# (Set $env:LAB_NO_WT = "1" to stay in the current window.)
+if (-not $env:WT_SESSION -and -not $env:LAB_NO_WT -and (Get-Command wt.exe -ErrorAction SilentlyContinue)) {
+    Why "This is a classic PowerShell window (no tabs). Reopening the menu in Windows Terminal; you can close this window."
+    $me = (Get-Process -Id $PID).Path
+    Start-Process wt.exe -ArgumentList @("new-tab", "--title", """Scripted Pipeline Menu""", $me, "-NoExit", "-ExecutionPolicy", "Bypass", "-File", ('"' + $PSCommandPath + '"'))
+    return
+}
+
 $menuTitle = "Scripted Pipeline Menu v" + $global:LabVersion + ": Windows"
 Set-Title $menuTitle
 $ps = (Get-Process -Id $PID).Path     # the same PowerShell that is running this menu
