@@ -277,10 +277,14 @@ function Show-Addresses {
     Write-Host "  QA"
     Write-Host ("    AI Assistant  {0}" -f $L["QA_ASSISTANT_URL"])
     Write-Host ("    AI Agents     {0}" -f $L["QA_AGENTS_URL"])
+    Write-Host ("    MCP server    {0}   (inside the cluster only)" -f $L["CLUSTER_MCP_URL"])
+    Write-Host ("    Ollama        {0}   (inside the cluster only)" -f $L["CLUSTER_OLLAMA_URL"])
     Write-Host ("    SSH           {0}@{1}" -f $L["QA_USER"], $L["QA_HOST"])
     Write-Host "  Prod"
     Write-Host ("    AI Assistant  {0}" -f $L["PROD_ASSISTANT_URL"])
     Write-Host ("    AI Agents     {0}" -f $L["PROD_AGENTS_URL"])
+    Write-Host ("    MCP server    {0}   (inside the cluster only)" -f $L["CLUSTER_MCP_URL"])
+    Write-Host ("    Ollama        {0}   (inside the cluster only)" -f $L["CLUSTER_OLLAMA_URL"])
     Write-Host ("    SSH           {0}@{1}" -f $L["PROD_USER"], $L["PROD_HOST"])
     Write-Host ""
 }

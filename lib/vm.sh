@@ -207,8 +207,8 @@ vm_urls() {
   vm_env "$1"
   local envup; envup="$(upper "$LAB_ENV")"
   say "Addresses ($LAB_ENV)"
-  printf '  AI Assistant  %s\n  AI Agents     %s\n  MCP server    internal only (%s)\n' \
-    "$(val "${envup}_ASSISTANT_URL")" "$(val "${envup}_AGENTS_URL")" "$CLUSTER_MCP_URL"
+  printf '  AI Assistant  %s\n  AI Agents     %s\n  MCP server    %s   (inside the cluster only)\n  Ollama        %s   (inside the cluster only)\n' \
+    "$(val "${envup}_ASSISTANT_URL")" "$(val "${envup}_AGENTS_URL")" "$CLUSTER_MCP_URL" "$CLUSTER_OLLAMA_URL"
   printf '  SSH           %s@%s\n' "$(env_val "$LAB_ENV" USER)" "$(env_val "$LAB_ENV" HOST)"
 }
 
