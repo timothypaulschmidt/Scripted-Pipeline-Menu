@@ -149,6 +149,7 @@ Edit `lab.env`, merge, pull on each machine. No script contains these values.
 
 ## Changes
 
+- **2.1.3** Deploying the MCP server or the Agents creates the `mcp-admin` token if it is missing (random, never shown), like first-time setup does.
 - **2.1.2** `dev-03` checks Docker Hub first and, for a version nobody has pushed yet, says so and how to build it instead of failing. Two menu labels shortened so the columns line up.
 - **2.1.1** `pipeline-menu-dev.ps1` reopens itself in Windows Terminal when started from a classic PowerShell window, so `dev-02 all` tabs open beside it. Set `$env:LAB_NO_WT = "1"` to stay put.
 - **2.1.0** Folders: the scripts moved into `dev-windows/`, `qa-linux/` and `prod-linux/`; the three menus stay at the top. Script names are unchanged.

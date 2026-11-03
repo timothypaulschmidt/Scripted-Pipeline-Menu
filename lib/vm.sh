@@ -42,13 +42,26 @@ vm_pull() {
   done
 }
 
+# The MCP admin token is random and needs no input from you, so create it when it is missing
+# (never print it). Change it later with the secrets script, option "admin".
+ensure_admin_token() {
+  if secret_exists mcp-admin; then
+    why "Secret mcp-admin already exists, so it is left alone. (Rotate it with ./${LAB_ENV}-linux/${LAB_ENV}-06-secrets.sh admin)"
+    return 0
+  fi
+  require openssl "sudo apt install openssl"
+  say "The MCP admin token does not exist yet: creating a random one"
+  why "The MCP server and the Agents page share this token. The reset and insert buttons only work when it exists."
+  apply_secret mcp-admin token "$(openssl rand -hex 24)"
+}
+
 # ---- 02: deploy ---------------------------------------------------------------
 preflight_secrets() {
   case "$1" in
     assistant)
       secret_exists gemini-api-key || die "Secret gemini-api-key is missing; the pod would not start. Run ./${LAB_ENV}-linux/${LAB_ENV}-06-secrets.sh gemini first." ;;
     mcp|agents)
-      secret_exists mcp-admin || warn "Secret mcp-admin is missing: the reset/insert buttons will be off. Run ./${LAB_ENV}-linux/${LAB_ENV}-06-secrets.sh admin" ;;
+      ensure_admin_token ;;
   esac
 }
 
@@ -263,13 +276,7 @@ vm_first_time() {
   say "Cloning the app repos next to Scripted-Pipeline-Menu"
   vm_pull "$LAB_ENV" all
   ensure_namespace
-  if secret_exists mcp-admin; then
-    ok "mcp-admin secret already exists"
-  else
-    require openssl "sudo apt install openssl"
-    say "Creating the MCP admin token (random, never shown)"
-    apply_secret mcp-admin token "$(openssl rand -hex 24)"
-  fi
+  ensure_admin_token
   say "Next:"
   printf '  1) ./%s-linux/%s-06-secrets.sh gemini     (paste your Gemini key)\n  2) ./%s-linux/%s-02-deploy.sh all          (deploy everything)\n' "$LAB_ENV" "$LAB_ENV" "$LAB_ENV" "$LAB_ENV"
 }
