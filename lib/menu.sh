@@ -42,6 +42,7 @@ vm_menu() {
    6  Secrets / Gemini key       ($e-06)
    7  Addresses                  ($e-09)
    8  Download language models   ($e-07)  Ollama models from lab.env
+   9  MCP mode                   ($e-08)  vulnerable or safe
    0  First-time setup           ($e-00)  once per VM
    v  Turn explanations on/off
    q  Quit
@@ -58,6 +59,8 @@ EOF2
       6) menu_run "$e-06-secrets.sh" ;;
       7) menu_run "$e-09-urls.sh" ;;
       8) menu_run "$e-07-pull-models.sh" ;;
+      9) a="$(ask_choice "MCP mode" show show vulnerable safe)"
+         if [ "$a" = "show" ]; then menu_run "$e-08-mcp-mode.sh"; else menu_run "$e-08-mcp-mode.sh" "$a"; fi ;;
       0) menu_run "$e-00-first-time-setup.sh" ;;
       v|V) if verbose; then export LAB_VERBOSE=0; else export LAB_VERBOSE=1; fi ;;
       q|Q) return 0 ;;

@@ -114,6 +114,7 @@ with `scp` any more: the VMs clone the app repos from GitHub and deploy from tho
 | `05-reset-mcp-data` | put the MCP data back to seed data |
 | `06-secrets [gemini/admin/custom/show]` | change secrets without ever showing them |
 | `07-pull-models [model ...]` | download the Ollama language models from `OLLAMA_MODELS` in `lab.env`; skips ones already there. Deploying the Assistant runs this for you (set `LAB_SKIP_MODELS=1` to skip) |
+| `08-mcp-mode` | show or switch the MCP server mode: `./qa-linux/qa-08-mcp-mode.sh safe` (remembered on the VM; a deploy keeps it) |
 | `09-urls` | print every address |
 
 ## New Windows computer, step by step
@@ -150,6 +151,7 @@ Edit `lab.env`, merge, pull on each machine. No script contains these values.
 
 ## Changes
 
+- **2.3.0** Switch the MCP server between `vulnerable` (14 tools) and `safe` (10) on QA and prod without a git change: menu 17 / 27 (or `*-08-mcp-mode.sh`). The choice is remembered on the VM, so later deploys keep it; status shows the current mode. Dev menus 2 and 4 already ask for the mode.
 - **2.2.5** The address lists (step 32 and the end of a deploy) also show every in-cluster address (MCP server, Ollama, Assistant, Agents: `CLUSTER_*_URL` in `lab.env`) and how to reach them from another namespace such as FortiAIGate.
 - **2.2.4** Secret prompts on the VMs (Gemini key, custom secrets) show one `*` per character typed or pasted, so you can see the paste landed; Backspace works.
 - **2.2.3** Prompts on the VMs (such as "Paste the Gemini API key:") now appear immediately instead of after you press Enter; the ssh calls no longer go through Out-Host.

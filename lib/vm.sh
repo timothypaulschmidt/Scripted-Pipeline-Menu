@@ -140,6 +140,7 @@ vm_deploy() {
     preflight_secrets "$a"
     if [ "$a" = "assistant" ]; then check_traefik_middleware; pull_models=1; fi
     run kubectl apply -k "$dir"
+    if [ "$a" = "mcp" ]; then apply_saved_mcp_mode; fi
     if ! run kubectl -n "$NAMESPACE" rollout status "deployment/$dep" --timeout=300s; then
       warn "$dep did not become ready in time. Is the image $image:$tag on Docker Hub? Details:"
       run kubectl -n "$NAMESPACE" get pods
@@ -189,6 +190,8 @@ vm_status() {
   run kubectl -n "$NAMESPACE" get pods -o wide
   say "What is running (image per deployment)"
   run kubectl -n "$NAMESPACE" get deploy -o custom-columns=NAME:.metadata.name,READY:.status.readyReplicas,IMAGE:.spec.template.spec.containers[0].image
+  say "MCP server mode (vulnerable = 14 tools, safe = 10)"
+  printf '  %s\n' "$(mcp_current_mode || true)"
   say "Services"
   run kubectl -n "$NAMESPACE" get svc
   say "Secrets (names only)"
@@ -242,6 +245,54 @@ vm_reset_mcp() {
   run kubectl -n "$NAMESPACE" rollout restart deployment/mcp-server
   run kubectl -n "$NAMESPACE" rollout status deployment/mcp-server --timeout=180s
   ok "Data reset. (The ticket-queue reset buttons on the agents page do a lighter reset without a restart.)"
+}
+
+# ---- 08: MCP mode (vulnerable / safe) --------------------------------------------
+# The MCP server reads MCP_MODE once, when it starts. "vulnerable" has 14 tools (adds run_sql, delete_records,
+# read_file, send_email); "safe" has 10. The repo's manifest says vulnerable. A choice made here is saved in a
+# small file on this VM (not in git) so a later deploy does not silently put it back.
+MCP_MODE_FILE="$HOME/.lab-mcp-mode"
+
+mcp_current_mode() {
+  kubectl -n "$NAMESPACE" get deployment mcp-server \
+    -o jsonpath='{.spec.template.spec.containers[0].env[?(@.name=="MCP_MODE")].value}' 2>/dev/null
+}
+
+# Called by the deploy right after kubectl apply: if you chose a mode earlier, put it back.
+apply_saved_mcp_mode() {
+  local want cur
+  [ -r "$MCP_MODE_FILE" ] || return 0
+  want="$(tr -d '[:space:]' < "$MCP_MODE_FILE")"
+  case "$want" in safe|vulnerable) ;; *) return 0 ;; esac
+  cur="$(mcp_current_mode || true)"
+  [ "$cur" = "$want" ] && return 0
+  why "You chose the MCP mode '$want' earlier on this VM, but the manifest in git says '${cur:-?}'. Applying your choice again so the deploy does not undo it."
+  run kubectl -n "$NAMESPACE" set env deployment/mcp-server "MCP_MODE=$want"
+}
+
+# vm_mcp_mode <env> [vulnerable|safe]    (no mode given: just show the current one)
+vm_mcp_mode() {
+  vm_env "$1"; shift
+  require kubectl "k3s should have installed it."
+  local want="${1:-}" cur
+  intro "MCP MODE: the MCP server decides which tools exist when it starts. 'vulnerable' is the attack lab (14 tools, including run_sql, delete_records, read_file and send_email). 'safe' is read-only with narrow tools (10). Switching restarts the MCP pod, which also rebuilds its fake data. Your choice is remembered on this VM, so a later deploy keeps it."
+  cur="$(mcp_current_mode || true)"
+  [ -n "$cur" ] || die "The MCP server is not deployed yet. Ship it first (deploy mcp)."
+  if [ -z "$want" ]; then
+    say "MCP server mode on $LAB_ENV: $cur"
+    return 0
+  fi
+  case "$want" in safe|vulnerable) ;; *) die "Usage: ./${LAB_ENV}-linux/${LAB_ENV}-08-mcp-mode.sh [vulnerable|safe]   (no argument shows the current mode)" ;; esac
+  guard_prod
+  if [ "$cur" = "$want" ]; then
+    ok "Already in $want mode."
+  else
+    say "Switching the MCP server from $cur to $want"
+    run kubectl -n "$NAMESPACE" set env deployment/mcp-server "MCP_MODE=$want"
+    run kubectl -n "$NAMESPACE" rollout status deployment/mcp-server --timeout=180s
+  fi
+  if [ "$DRY" != "1" ]; then printf '%s\n' "$want" > "$MCP_MODE_FILE"; fi
+  ok "MCP server is in $want mode. Reload the Assistant page to see the tool count change."
 }
 
 # ---- 06: secrets --------------------------------------------------------------

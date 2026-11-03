@@ -63,6 +63,7 @@ while ($true) {
     Write-Host "  14  QA reset MCP data                qa-11"
     Write-Host "  15  QA change Gemini key             qa-12"
     Write-Host "  16  QA download language models     qa-11"
+    Write-Host "  17  QA MCP mode (vulnerable/safe)    qa-11"
     Write-Host "  PROD (ssh to $($Lab['PROD_HOST']))" -ForegroundColor Red
     Write-Host "  21  Ship to PROD                     prod-10"
     Write-Host "  22  PROD status                      prod-11"
@@ -70,6 +71,7 @@ while ($true) {
     Write-Host "  24  PROD reset MCP data              prod-11"
     Write-Host "  25  PROD change Gemini key           prod-12"
     Write-Host "  26  PROD download language models    prod-11"
+    Write-Host "  27  PROD MCP mode (vulnerable/safe)  prod-11"
     Write-Host "  SETUP / INFO"
     Write-Host "  30  Set up this computer             dev-00"
     Write-Host "  31  Set up a VM (ssh key, clone)     dev-08"
@@ -99,6 +101,12 @@ while ($true) {
         }
         { $_ -in "14", "24" } { $e = if ($c -eq "14") { "qa" } else { "prod" }; Invoke-MenuScript ($e + "-11-remote.ps1") @("reset") }
         { $_ -in "16", "26" } { $e = if ($c -eq "16") { "qa" } else { "prod" }; Invoke-MenuScript ($e + "-11-remote.ps1") @("models") }
+        { $_ -in "17", "27" } {
+            $e = if ($c -eq "17") { "qa" } else { "prod" }
+            $m = Ask-Choice "MCP mode" "show" @("show", "vulnerable", "safe")
+            $x = @("mode"); if ($m -ne "show") { $x += $m }
+            Invoke-MenuScript ($e + "-11-remote.ps1") $x
+        }
         { $_ -in "15", "25" } { $e = if ($c -eq "15") { "qa" } else { "prod" }; Invoke-MenuScript ($e + "-12-gemini-key.ps1") }
         "30" { Invoke-MenuScript "dev-00-first-time-setup.ps1" }
         "31" { $e = Ask-Choice "Which VM" "qa" @("qa", "prod"); Invoke-MenuScript "dev-08-vm-bootstrap.ps1" @($e) }
