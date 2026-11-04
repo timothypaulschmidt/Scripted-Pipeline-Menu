@@ -70,6 +70,7 @@ while ($true) {
     Write-Host "  16  QA download language models     qa-11"
     Write-Host "  17  QA MCP mode (vulnerable/safe)    qa-11"
     Write-Host "  18  QA FortiAIGate routing           qa-11"
+    Write-Host "  19  QA FortiAIGate API key           qa-13"
     Write-Host "  PROD (ssh to $($Lab['PROD_HOST']))" -ForegroundColor Red
     Write-Host "  21  Ship to PROD                     prod-10"
     Write-Host "  22  PROD status                      prod-11"
@@ -79,6 +80,7 @@ while ($true) {
     Write-Host "  26  PROD download language models    prod-11"
     Write-Host "  27  PROD MCP mode (vulnerable/safe)  prod-11"
     Write-Host "  28  PROD FortiAIGate routing         prod-11"
+    Write-Host "  29  PROD FortiAIGate API key         prod-13"
     Write-Host "  SETUP / INFO" -ForegroundColor Magenta
     Write-Host "  30  Set up this computer             dev-00"
     Write-Host "  31  Set up a VM (ssh key, clone)     dev-08"
@@ -121,6 +123,7 @@ while ($true) {
             if ($a -ne "show") { $r = Ask-Choice "Route" "direct" @("direct", "model", "model+mcp"); $x += @($a, $r) }
             Invoke-MenuScript ($e + "-11-remote.ps1") $x
         }
+        { $_ -in "19", "29" } { $e = if ($c -eq "19") { "qa" } else { "prod" }; Invoke-MenuScript ($e + "-13-faig-key.ps1") }
         { $_ -in "15", "25" } { $e = if ($c -eq "15") { "qa" } else { "prod" }; Invoke-MenuScript ($e + "-12-gemini-key.ps1") }
         "30" { Invoke-MenuScript "dev-00-first-time-setup.ps1" }
         "31" { $e = Ask-Choice "Which VM" "qa" @("qa", "prod"); Invoke-MenuScript "dev-08-vm-bootstrap.ps1" @($e) }
