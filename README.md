@@ -152,6 +152,7 @@ Edit `lab.env`, merge, pull on each machine. No script contains these values.
 
 ## Changes
 
+- **2.5.1** Windows menu 19 (QA) / 29 (prod): store the FortiAIGate API key directly. Menu 15/25 only ever changes the Gemini key.
 - **2.5.0** Secrets step (6 on the VM menus, 15 QA, 25 prod) gains option 5 `faig`: stores the FortiAIGate API key as secret `faig-api-key` (masked input) and restarts the ai-assistant. The Assistant needs it before its FortiAIGate route can be used.
 - **2.4.0** FortiAIGate routing for each app, from the pipeline: menu 18 (QA) / 28 (prod), `r` on the VM menus, or `*-10-route.sh`. Options per app: direct, model, model+mcp. Needs the new AI-Assistant and AI-Agents versions; the choice is held by the app (a restart returns it to direct). Status shows the current routes.
 - **2.3.1** Windows menu headings are colored: THIS COMPUTER blue, QA yellow, PROD red, SETUP / INFO magenta.
