@@ -61,7 +61,7 @@ function Release-App {
         }
 
         Say "Building the image"
-        Run docker build -t ($image + ":" + $new) .
+        Run docker build --build-arg ("APP_VERSION=" + $new) -t ($image + ":" + $new) .
         Say "Pushing to Docker Hub (if this asks you to log in, run: docker login)"
         Run docker push ($image + ":" + $new)
 

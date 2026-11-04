@@ -20,6 +20,7 @@
 ^docker network create	DOCKER NETWORK CREATE: makes a private virtual network. Containers on it can find each other by name (for example http://mcp-server:8000).
 ^docker network inspect	DOCKER NETWORK INSPECT: checks whether that network already exists, so we only create it once.
 ^docker build	DOCKER BUILD: reads the Dockerfile and bakes your code into an image, a frozen runnable package of the app.
+^docker build.* --build-arg 	  --build-arg APP_VERSION=...: hands the version number to the build, so the app can show it on its page.
 ^docker build.* -t 	  -t name:tag: names the image. The part after the colon is the tag; we use it as the version, like v0.2.1.
 ^docker build.* \.$	  the final "." means: use the files in the current folder as the build input.
 ^docker push	DOCKER PUSH: uploads the image to Docker Hub, so QA and prod can download exactly this version.
