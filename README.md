@@ -152,6 +152,7 @@ Edit `lab.env`, merge, pull on each machine. No script contains these values.
 
 ## Changes
 
+- **2.5.0** Secrets step (6 on the VM menus, 15 QA, 25 prod) gains option 5 `faig`: stores the FortiAIGate API key as secret `faig-api-key` (masked input) and restarts the ai-assistant. The Assistant needs it before its FortiAIGate route can be used.
 - **2.4.0** FortiAIGate routing for each app, from the pipeline: menu 18 (QA) / 28 (prod), `r` on the VM menus, or `*-10-route.sh`. Options per app: direct, model, model+mcp. Needs the new AI-Assistant and AI-Agents versions; the choice is held by the app (a restart returns it to direct). Status shows the current routes.
 - **2.3.1** Windows menu headings are colored: THIS COMPUTER blue, QA yellow, PROD red, SETUP / INFO magenta.
 - **2.3.0** Switch the MCP server between `vulnerable` (14 tools) and `safe` (10) on QA and prod without a git change: menu 17 / 27 (or `*-08-mcp-mode.sh`). The choice is remembered on the VM, so later deploys keep it; status shows the current mode. Dev menus 2 and 4 already ask for the mode.
