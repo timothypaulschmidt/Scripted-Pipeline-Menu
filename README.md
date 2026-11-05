@@ -152,6 +152,7 @@ Edit `lab.env`, merge, pull on each machine. No script contains these values.
 
 ## Changes
 
+- **2.5.3** Menu 19/29 asks which app (assistant or agents): each keeps its own FortiAIGate key (Secrets `faig-api-key` and `faig-agents-api-key`), so FortiAIGate can tell the two apart and apply different guards and flows.
 - **2.5.2** The release step (menu 5) passes the version into the image build (`--build-arg APP_VERSION=...`), so AI-Assistant and AI-Agents show it at the bottom left of their pages. Needs the matching app versions.
 - **2.5.1** Windows menu 19 (QA) / 29 (prod): store the FortiAIGate API key directly. Menu 15/25 only ever changes the Gemini key.
 - **2.5.0** Secrets step (6 on the VM menus, 15 QA, 25 prod) gains option 5 `faig`: stores the FortiAIGate API key as secret `faig-api-key` (masked input) and restarts the ai-assistant. The Assistant needs it before its FortiAIGate route can be used.

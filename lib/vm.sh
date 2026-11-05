@@ -421,9 +421,10 @@ Secrets on $LAB_ENV (values are never shown):
   2) admin   - MCP admin token (used by mcp-server and ai-agents); makes a new random one
   3) custom  - any other secret (you give the name, key and value)
   4) show    - list secrets and their key names
-  5) faig    - FortiAIGate API key (used by ai-assistant when its traffic goes through FortiAIGate)
+  5) faig    - FortiAIGate API key for ai-assistant (its own FortiAIGate client / virtual key)
+  6) faig-agents - FortiAIGate API key for ai-agents (a different virtual key, so FortiAIGate can tell the two apps apart)
 EOF
-    read -r -p "Choose 1-5 (or q to quit): " choice
+    read -r -p "Choose 1-6 (or q to quit): " choice
   fi
   case "$choice" in
     1|gemini)
@@ -440,6 +441,13 @@ EOF
       apply_secret faig-api-key FAIG_API_KEY "$v"
       restart_deployments ai-assistant
       ok "FortiAIGate key updated. The ai-assistant restarted, so its traffic route is back to direct; set it again with the routing step." ;;
+    6|faig-agents)
+      guard_prod; ensure_namespace
+      v="$(read_secret_value "Paste the FortiAIGate API key for ai-agents")"
+      [ "${#v}" -ge 8 ] || warn "That key looks short (${#v} characters). Continuing anyway."
+      apply_secret faig-agents-api-key FAIG_API_KEY "$v"
+      restart_deployments ai-agents
+      ok "FortiAIGate key for ai-agents updated. The ai-agents restarted, so its traffic route is back to direct; set it again with the routing step." ;;
     2|admin)
       guard_prod; ensure_namespace
       require openssl "sudo apt install openssl"
