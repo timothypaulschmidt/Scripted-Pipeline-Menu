@@ -123,7 +123,7 @@ while ($true) {
             if ($a -ne "show") { $r = Ask-Choice "Route" "direct" @("direct", "model", "model+mcp"); $x += @($a, $r) }
             Invoke-MenuScript ($e + "-11-remote.ps1") $x
         }
-        { $_ -in "19", "29" } { $e = if ($c -eq "19") { "qa" } else { "prod" }; Invoke-MenuScript ($e + "-13-faig-key.ps1") }
+        { $_ -in "19", "29" } { $e = if ($c -eq "19") { "qa" } else { "prod" }; $a = Ask-Choice "Which app" "assistant" @("assistant", "agents"); Invoke-MenuScript ($e + "-13-faig-key.ps1") @($a) }
         { $_ -in "15", "25" } { $e = if ($c -eq "15") { "qa" } else { "prod" }; Invoke-MenuScript ($e + "-12-gemini-key.ps1") }
         "30" { Invoke-MenuScript "dev-00-first-time-setup.ps1" }
         "31" { $e = Ask-Choice "Which VM" "qa" @("qa", "prod"); Invoke-MenuScript "dev-08-vm-bootstrap.ps1" @($e) }
