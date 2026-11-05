@@ -438,7 +438,7 @@ EOF
       guard_prod; ensure_namespace
       v="$(read_secret_value "Paste the FortiAIGate API key")"
       [ "${#v}" -ge 8 ] || warn "That key looks short (${#v} characters). Continuing anyway."
-      apply_secret faig-api-key FAIG_API_KEY "$v"
+      apply_secret faig-assistant-api-key FAIG_API_KEY "$v"
       restart_deployments ai-assistant
       ok "FortiAIGate key updated. The ai-assistant restarted, so its traffic route is back to direct; set it again with the routing step." ;;
     6|faig-agents)
