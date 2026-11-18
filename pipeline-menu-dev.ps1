@@ -34,13 +34,34 @@ function Ask-Choice {
     }
 }
 
+# After a ship the apps restart, and a restarted app goes back to Direct (not through FortiAIGate).
+# Offer to set the route right away. The default is to keep things as they are; a failure here never
+# undoes the ship (the images are already deployed), it only prints the reason.
+function Offer-FaigRoute {
+    param([string]$EnvName, [string]$App)
+    $targets = @()
+    if ($App -eq "all") { $targets = @("assistant", "agents") }
+    elseif ($App -eq "assistant" -or $App -eq "agents") { $targets = @($App) }
+    if ($targets.Count -eq 0) { return }
+    Write-Host ""
+    Say "FortiAIGate route"
+    Why "A ship restarts the apps whose image changed, and a restarted app goes back to Direct. Unchanged apps keep their route. Here are the routes right now."
+    Invoke-MenuScript ($EnvName + "-11-remote.ps1") @("route") -NoPause
+    $r = Ask-Choice "Set the route for the shipped app(s) now" "keep" @("keep", "model", "direct")
+    if ($r -eq "keep") { return }
+    foreach ($t in $targets) {
+        Invoke-MenuScript ($EnvName + "-11-remote.ps1") @("route", $t, $r) -NoPause
+    }
+}
+
 function Invoke-MenuScript {
-    param([string]$Script, [string[]]$ScriptArgs = @())
+    param([string]$Script, [string[]]$ScriptArgs = @(), [switch]$NoPause)
     Write-Host ""
     Write-Host ("  $ .\" + $Script + " " + ($ScriptArgs -join " ")) -ForegroundColor DarkYellow
     & $ps -NoProfile -ExecutionPolicy Bypass -File (Join-Path (Join-Path $PSScriptRoot "dev-windows") $Script) @ScriptArgs
     if ($LASTEXITCODE -ne 0) { Warn "That script stopped with an error (shown above)." }
     Write-Host ""
+    if ($NoPause) { return }          # a chained step: the last one of the chain pauses
     [void](Read-Host "Press Enter to return to the menu")
     Set-Title $menuTitle
 }
@@ -98,7 +119,10 @@ while ($true) {
         "7"  { $a = Ask-Choice "Which app" "all" $all; Invoke-MenuScript "dev-07-docker-stop.ps1" @($a) }
         { $_ -in "11", "21" } {
             $e = if ($c -eq "11") { "qa" } else { "prod" }
-            $a = Ask-Choice "Which app" "all" $all; Invoke-MenuScript ($e + "-10-ship.ps1") @($a)
+            $a = Ask-Choice "Which app" "all" $all; Invoke-MenuScript ($e + "-10-ship.ps1") @($a) -NoPause
+            if ($LASTEXITCODE -eq 0) { Offer-FaigRoute $e $a }      # the chain: ship, then (optionally) the route
+            [void](Read-Host "Press Enter to return to the menu")
+            Set-Title $menuTitle
         }
         { $_ -in "12", "22" } { $e = if ($c -eq "12") { "qa" } else { "prod" }; Invoke-MenuScript ($e + "-11-remote.ps1") @("status") }
         { $_ -in "13", "23" } {
