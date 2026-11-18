@@ -99,7 +99,7 @@ with `scp` any more: the VMs clone the app repos from GitHub and deploy from tho
 ### Windows driving a VM (`dev-windows/`, scripts `qa-1x`, `prod-1x`)
 | Script | What it does |
 |---|---|
-| `qa-10-ship <app/all>` | checks the image is on Docker Hub, then updates and deploys on the VM (prod asks you to type `prod`) |
+| `qa-10-ship <app/all>` | checks the image is on Docker Hub, then updates and deploys on the VM (prod asks you to type `prod`). From the Windows menu (11/21) it then offers to set the FortiAIGate route |
 | `qa-11-remote <pull/deploy/status/logs/reset/secrets/models/urls> [args]` | run any VM script from Windows, e.g. `.\dev-windows\qa-11-remote.ps1 logs agents -f` |
 | `qa-12-gemini-key` | change the Gemini key on that VM (paste hidden), restarts the pods that use it |
 
@@ -152,6 +152,7 @@ Edit `lab.env`, merge, pull on each machine. No script contains these values.
 
 ## Changes
 
+- **2.6.0** Menu 11/21 (ship) now ends with an optional FortiAIGate route step: it shows each app's current route, then asks `keep / model / direct` (default `keep`). A restarted app goes back to Direct, so this saves the separate trip to 18/28 after a release; 18/28 still work on their own. A route that cannot be set (for example no FortiAIGate key yet) only prints the reason and never undoes the ship. The menu asks for Enter once, at the end of the chain.
 - **2.5.4** Dropped `qwen3:4b` from the Ollama model list (`lab.env`): the lab keeps `llama3.2:3b` (the prompt-injection demo) and `qwen3:8b` (the best model for the QA CPU). Existing VMs keep the old model until it is removed with `ollama rm qwen3:4b`.
 - **2.5.3** Menu 19/29 asks which app (assistant or agents): each keeps its own FortiAIGate key (Secrets `faig-assistant-api-key` and `faig-agents-api-key`), so FortiAIGate can tell the two apart and apply different guards and flows.
 - **2.5.2** The release step (menu 5) passes the version into the image build (`--build-arg APP_VERSION=...`), so AI-Assistant and AI-Agents show it at the bottom left of their pages. Needs the matching app versions.
