@@ -35,7 +35,7 @@ function Ask-Choice {
 }
 
 # After a ship the apps restart, and a restarted app goes back to Direct (not through FortiAIGate).
-# Offer to set the route right away. The default is to keep things as they are; a failure here never
+# Offer to set the route right away. The default is to skip (leave things as they are); a failure here never
 # undoes the ship (the images are already deployed), it only prints the reason.
 function Offer-FaigRoute {
     param([string]$EnvName, [string]$App)
@@ -47,8 +47,8 @@ function Offer-FaigRoute {
     Say "FortiAIGate route"
     Why "A ship restarts the apps whose image changed, and a restarted app goes back to Direct. Unchanged apps keep their route. Here are the routes right now."
     Invoke-MenuScript ($EnvName + "-11-remote.ps1") @("route") -NoPause
-    $r = Ask-Choice "Set the route for the shipped app(s) now" "keep" @("keep", "model", "direct")
-    if ($r -eq "keep") { return }
+    $r = Ask-Choice "Set the route for the shipped app(s) now (skip = leave as is)" "skip" @("skip", "direct", "model", "model+mcp")
+    if ($r -eq "skip") { return }
     foreach ($t in $targets) {
         Invoke-MenuScript ($EnvName + "-11-remote.ps1") @("route", $t, $r) -NoPause
     }
